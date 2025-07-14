@@ -1,6 +1,8 @@
 package com.cole.controller;
 
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,6 +13,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 public class DashboardController {
+    private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     @FXML
     private AnchorPane contentArea;
     @FXML
@@ -29,8 +32,17 @@ public class DashboardController {
             AnchorPane.setRightAnchor(view, 0.0);
         }
         catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to load FXML: {}", fxmlPath, e);
+            showError("Error loading view", "Could not load: " + fxmlPath);
         }
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML
