@@ -12,15 +12,37 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
+/**
+ * Controller for the main dashboard view.
+ * <p>
+ * Handles UI events and scene switching for dashboard content.
+ * <p>
+ * This class is responsible for:
+ * <ul>
+ *   <li>Loading and switching dashboard content views</li>
+ *   <li>Handling logout and exit actions</li>
+ *   <li>Showing error dialogs for view loading issues</li>
+ * </ul>
+ * <p>
+ * All FXML view loading is performed on the JavaFX Application Thread.
+ */
 public class DashboardController {
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     @FXML
     private AnchorPane contentArea;
+    /**
+     * Initializes the controller and loads the dashboard home view.
+     * This method is called automatically by the JavaFX framework after FXML loading.
+     */
     @FXML
     public void initialize() {
         setCenterContent("/fxml/dashboardHome.fxml");
     }
 
+    /**
+     * Loads and sets the center content of the dashboard to the specified FXML view.
+     * @param fxmlPath Path to the FXML file to load (e.g., "/fxml/dashboardHome.fxml")
+     */
     private void setCenterContent(String fxmlPath){
         try{
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
@@ -37,6 +59,11 @@ public class DashboardController {
         }
     }
 
+    /**
+     * Shows an error dialog with the given title and message.
+     * @param title Dialog title (short description)
+     * @param message Error message (detailed)
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -45,6 +72,10 @@ public class DashboardController {
         alert.showAndWait();
     }
 
+    /**
+     * Handles the logout action when the user clicks the logout button.
+     * @param event ActionEvent from the UI
+     */
     @FXML
     private void handleLogout(ActionEvent event) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -54,6 +85,11 @@ public class DashboardController {
         alert.showAndWait();
     }
 
+    /**
+     * Handles the exit action when the user clicks the exit button.
+     * Prompts for confirmation before closing the application.
+     * @param event ActionEvent from the UI
+     */
     @FXML
     private void handleExit(ActionEvent event) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
@@ -69,11 +105,21 @@ public class DashboardController {
         });
     }
 
+    /**
+     * Handles the action to manage SLPs when the user clicks the corresponding button.
+     * Switches the center content to the SLP management view.
+     * @param event ActionEvent from the UI
+     */
     @FXML
     private void handleManageSLPs(ActionEvent event) {
         setCenterContent("/fxml/slp.fxml");
     }
 
+    /**
+     * Handles the action to manage SLP modules when the user clicks the corresponding button.
+     * Switches the center content to the SLP modules management view.
+     * @param event ActionEvent from the UI
+     */
     @FXML
     private void handleManageSLPModules(ActionEvent event) {
         setCenterContent("/fxml/slpModules.fxml");

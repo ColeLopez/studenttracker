@@ -16,6 +16,10 @@ import java.util.List;
 public class SLPService {
     private static final Logger logger = LoggerFactory.getLogger(SLPService.class);
 
+    /**
+     * Retrieves all SLPs from the database.
+     * @return List of SLP objects.
+     */
     public List<SLP> getAllSLPs() {
         List<SLP> slps = new ArrayList<>();
         String sql = "SELECT slp_id, slp_code, name FROM slps";
@@ -35,6 +39,12 @@ public class SLPService {
         return slps;
     }
 
+    /**
+     * Adds a new SLP to the database.
+     * @param code SLP code (unique identifier).
+     * @param name SLP name.
+     * @return true if added successfully, false otherwise.
+     */
     public boolean addSLP(String code, String name) {
         String sql = "INSERT INTO slps (slp_code, name) VALUES (?, ?)";
         try (Connection conn = DBUtil.getConnection();
@@ -49,6 +59,13 @@ public class SLPService {
         }
     }
 
+    /**
+     * Updates an existing SLP in the database.
+     * @param id SLP ID to update.
+     * @param code New SLP code.
+     * @param name New SLP name.
+     * @return true if updated successfully, false otherwise.
+     */
     public boolean updateSLP(int id, String code, String name) {
         String sql = "UPDATE slps SET slp_code = ?, name = ? WHERE slp_id = ?";
         try (Connection conn = DBUtil.getConnection();
@@ -64,6 +81,11 @@ public class SLPService {
         }
     }
 
+    /**
+     * Deletes an SLP from the database.
+     * @param id SLP ID to delete.
+     * @return true if deleted successfully, false otherwise.
+     */
     public boolean deleteSLP(int id) {
         String sql = "DELETE FROM slps WHERE slp_id = ?";
         try (Connection conn = DBUtil.getConnection();
@@ -77,6 +99,12 @@ public class SLPService {
         }
     }
 
+    /**
+     * Checks if an SLP code is a duplicate in the database.
+     * @param slpCode SLP code to check.
+     * @param excludeId SLP ID to exclude from check (for updates), can be null.
+     * @return true if duplicate exists, false otherwise.
+     */
     public boolean isDuplicateSLPCode(String slpCode, Integer excludeId) {
         String sql = "SELECT 1 FROM slps WHERE slp_code = ?";
         if (excludeId != null) {

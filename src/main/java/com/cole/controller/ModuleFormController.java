@@ -11,6 +11,21 @@ import javafx.stage.Stage;
 
 // ...existing code...
 
+/**
+ * Controller for the module form dialog.
+ * <p>
+ * Handles UI events and database operations for adding new modules.
+ * <p>
+ * This class is responsible for:
+ * <ul>
+ *   <li>Validating module input fields</li>
+ *   <li>Saving new modules to the database</li>
+ *   <li>Closing the dialog window</li>
+ *   <li>Showing error dialogs for validation and database errors</li>
+ * </ul>
+ * <p>
+ * All database operations are performed asynchronously using JavaFX Tasks.
+ */
 public class ModuleFormController {
     private static final Logger logger = LoggerFactory.getLogger(ModuleFormController.class);
     private final ModuleService moduleService = new ModuleService();
@@ -19,6 +34,12 @@ public class ModuleFormController {
     @FXML private TextField nameField;
     @FXML private TextField passMarkField;
 
+    /**
+     * Handles saving a new module to the database.
+     * Invoked by the UI when the user clicks the "Save" button.
+     * Validates input fields and shows error dialogs if validation fails.
+     * On success, closes the dialog window.
+     */
     @FXML
     private void handleSave() {
         String code = codeField.getText().trim();
@@ -62,16 +83,30 @@ public class ModuleFormController {
         new Thread(task).start();
     }
 
+    /**
+     * Handles cancelling the module form dialog.
+     * Invoked by the UI when the user clicks the "Cancel" button.
+     * Closes the dialog window without saving.
+     */
     @FXML
     private void handleCancel() {
         closeWindow();
     }
 
+    /**
+     * Closes the module form dialog window.
+     * Called internally after save or cancel actions.
+     */
     private void closeWindow() {
         Stage stage = (Stage) codeField.getScene().getWindow();
         stage.close();
     }
 
+    /**
+     * Shows an error dialog with the given title and message.
+     * @param title Dialog title (short description)
+     * @param msg Error message (detailed)
+     */
     private void showAlert(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

@@ -19,6 +19,21 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
+/**
+ * Controller for handling user login functionality.
+ * <p>
+ * Handles UI events and database operations for authenticating users.
+ * <p>
+ * This class is responsible for:
+ * <ul>
+ *   <li>Validating login input fields</li>
+ *   <li>Authenticating users against the database</li>
+ *   <li>Switching scenes on successful login</li>
+ *   <li>Showing error dialogs for validation and authentication errors</li>
+ * </ul>
+ * <p>
+ * All database operations are performed asynchronously using JavaFX Tasks.
+ */
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML
@@ -36,6 +51,13 @@ public class LoginController {
 
     private final AuthService authService = new AuthService();
 
+    /**
+     * Handles key press events in the login form.
+     * Invoked by the UI when a key is pressed in the login fields.
+     * If ENTER is pressed, triggers the login process.
+     * @param event KeyEvent from the UI
+     * @throws IOException if scene loading fails
+     */
     @FXML
     private void handleKeyPressed(KeyEvent event) throws IOException {
         if (event.getCode() == KeyCode.ENTER) {
@@ -43,6 +65,11 @@ public class LoginController {
         }
     }
 
+    /**
+     * Handles the login process when the user clicks the login button or presses ENTER.
+     * Validates input fields and shows error dialogs if validation fails.
+     * On success, switches to the dashboard scene.
+     */
     @FXML
     private void handleLogin() {
         if (usernameField == null || passwordField == null) {
@@ -88,6 +115,12 @@ public class LoginController {
         new Thread(task).start();
     }
 
+    /**
+     * Shows an alert dialog with the given type, title, and message.
+     * @param type Alert type (e.g., ERROR, INFORMATION)
+     * @param title Dialog title (short description)
+     * @param message Message to display (detailed)
+     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

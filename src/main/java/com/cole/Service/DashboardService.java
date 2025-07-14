@@ -11,6 +11,10 @@ import java.sql.Statement;
 public class DashboardService {
     private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
 
+    /**
+     * Gets the total number of students.
+     * @return Student count, or -1 if error occurs.
+     */
     public int getStudentCount() {
         String sql = "SELECT COUNT(*) FROM students";
         try (Connection conn = DBUtil.getConnection();
@@ -25,6 +29,10 @@ public class DashboardService {
         return -1;
     }
 
+    /**
+     * Gets the number of graduated students.
+     * @return Graduated count, or -1 if error occurs.
+     */
     public int getGraduatedCount() {
         String sql = "SELECT COUNT(*) FROM students WHERE status = 'Graduated'";
         try (Connection conn = DBUtil.getConnection();

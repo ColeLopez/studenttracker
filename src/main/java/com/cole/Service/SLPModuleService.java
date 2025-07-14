@@ -31,6 +31,10 @@ public class SLPModuleService {
     private static final String INSERT_MODULE =
             "INSERT INTO modules (module_code, name, pass_rate) VALUES (?, ?, ?)";
 
+    /**
+     * Retrieves all SLPs from the database.
+     * @return List of SLP objects.
+     */
     public List<SLP> getAllSLPs() {
         List<SLP> slps = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
@@ -49,6 +53,11 @@ public class SLPModuleService {
         return slps;
     }
 
+    /**
+     * Retrieves all modules linked to a specific SLP.
+     * @param slpId SLP ID.
+     * @return List of Module objects.
+     */
     public List<Module> getModulesForSLP(int slpId) {
         List<Module> modules = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
@@ -70,6 +79,10 @@ public class SLPModuleService {
         return modules;
     }
 
+    /**
+     * Retrieves all modules from the database.
+     * @return List of Module objects.
+     */
     public List<Module> getAllModules() {
         List<Module> modules = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
@@ -89,6 +102,12 @@ public class SLPModuleService {
         return modules;
     }
 
+    /**
+     * Links a list of modules to a specific SLP.
+     * @param slpId SLP ID.
+     * @param modules List of Module objects to link.
+     * @return List of module codes that were already linked.
+     */
     public List<String> linkModulesToSLP(int slpId, List<Module> modules) {
         List<String> alreadyLinked = new ArrayList<>();
         Connection conn = null;
@@ -134,6 +153,12 @@ public class SLPModuleService {
         return alreadyLinked;
     }
 
+    /**
+     * Removes a module from a specific SLP.
+     * @param slpId SLP ID.
+     * @param moduleId Module ID to remove.
+     * @return true if removed successfully, false otherwise.
+     */
     public boolean removeModuleFromSLP(int slpId, int moduleId) {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(DELETE_SLP_MODULE)) {
@@ -147,6 +172,11 @@ public class SLPModuleService {
         }
     }
 
+    /**
+     * Adds a new module to the database.
+     * @param module Module object to add.
+     * @return true if added successfully, false otherwise.
+     */
     public boolean addNewModule(Module module) {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(INSERT_MODULE)) {

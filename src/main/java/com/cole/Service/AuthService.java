@@ -10,6 +10,12 @@ import com.cole.util.PasswordUtil;
 
 public class AuthService {
     
+    /**
+     * Authenticates a user with username and password.
+     * @param username Username of the user.
+     * @param password Plain text password.
+     * @return true if login is successful, false otherwise.
+     */
     public boolean login(String username, String password) {
         String query = "SELECT password_hash, salt FROM users WHERE username = ?";
 
@@ -37,6 +43,12 @@ public class AuthService {
     }
 
 
+    /**
+     * Registers a new user with username and password.
+     * @param username Username of the new user.
+     * @param password Plain text password.
+     * @return true if registration is successful, false otherwise.
+     */
     public boolean register(String username, String password) {
         // Implement registration logic here
         // This is a placeholder implementation

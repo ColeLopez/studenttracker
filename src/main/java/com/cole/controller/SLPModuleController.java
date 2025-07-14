@@ -22,8 +22,19 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controller for managing SLPs and their linked modules.
- * Handles UI events and database operations for linking/unlinking modules.
+ * Controller for managing Student Learning Pathways (SLPs) and their linked modules.
+ * <p>
+ * Handles UI events and database operations for linking/unlinking modules to SLPs.
+ * <p>
+ * This class is responsible for:
+ * <ul>
+ *   <li>Loading SLPs and modules from the database</li>
+ *   <li>Linking and unlinking modules to SLPs</li>
+ *   <li>Handling user interactions for module management</li>
+ *   <li>Providing dialogs for module selection and creation</li>
+ * </ul>
+ * <p>
+ * All database operations are performed asynchronously using JavaFX Tasks.
  */
 public class SLPModuleController {
     private static final Logger logger = LoggerFactory.getLogger(SLPModuleController.class);
@@ -41,7 +52,8 @@ public class SLPModuleController {
     // ...existing code...
 
     /**
-     * Initializes the controller and sets up UI bindings.
+     * Initializes the controller and sets up UI bindings for the module table and SLP ComboBox.
+     * This method is called automatically by the JavaFX framework after FXML loading.
      */
     @FXML
     public void initialize() {
@@ -61,6 +73,7 @@ public class SLPModuleController {
 
     /**
      * Loads all SLPs from the database into the ComboBox.
+     * This method runs asynchronously and updates the ComboBox on success.
      */
     private void loadSLPs() {
         Task<ObservableList<SLP>> task = new Task<>() {
@@ -83,7 +96,7 @@ public class SLPModuleController {
 
     /**
      * Loads all modules linked to the given SLP ID.
-     * @param slpId SLP identifier
+     * @param slpId SLP identifier (database primary key)
      */
     private void loadModulesForSLP(int slpId) {
         Task<ObservableList<Module>> task = new Task<>() {
@@ -107,6 +120,7 @@ public class SLPModuleController {
     /**
      * Handles linking selected modules to the selected SLP.
      * Shows a dialog for multi-select and search.
+     * Invoked by the UI when the user clicks the "Add Modules" button.
      */
     @FXML
     private void handleAddModules() {
@@ -142,8 +156,8 @@ public class SLPModuleController {
 
     /**
      * Links the given modules to the specified SLP, checking for duplicates.
-     * @param slp SLP to link modules to
-     * @param modules List of modules to link
+     * @param slp SLP to link modules to (must not be null)
+     * @param modules List of modules to link (must not be null or empty)
      */
     private void linkModulesToSLP(SLP slp, List<Module> modules) {
         Task<List<String>> task = new Task<>() {
@@ -170,8 +184,8 @@ public class SLPModuleController {
 
     /**
      * Shows a dialog for selecting multiple modules with a search filter.
-     * @param allModules List of all modules
-     * @return Optional list of selected modules
+     * @param allModules List of all modules (ObservableList for JavaFX bindings)
+     * @return Optional list of selected modules, or empty if cancelled
      */
     private Optional<List<Module>> showModuleSelectionDialog(ObservableList<Module> allModules) {
         TextField searchField = new TextField();
@@ -219,6 +233,8 @@ public class SLPModuleController {
 
     /**
      * Handles removing the selected module from the selected SLP.
+     * Invoked by the UI when the user clicks the "Remove Module" button.
+     * Prompts for confirmation before unlinking.
      */
     @FXML
     private void handleRemoveModule() {
@@ -315,7 +331,7 @@ public class SLPModuleController {
 
     /**
      * Shows a dialog for entering new module details.
-     * @return Optional Module if input is valid
+     * @return Optional Module if input is valid, or empty if cancelled/invalid
      */
     private Optional<Module> showNewModuleDialog() {
         Dialog<Module> dialog = new Dialog<>();
@@ -378,8 +394,8 @@ public class SLPModuleController {
 
     /**
      * Shows an error dialog with the given title and message.
-     * @param title Dialog title
-     * @param message Error message
+     * @param title Dialog title (short description)
+     * @param message Error message (detailed)
      */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

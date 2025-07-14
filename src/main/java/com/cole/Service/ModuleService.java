@@ -10,6 +10,13 @@ import java.sql.PreparedStatement;
 public class ModuleService {
     private static final Logger logger = LoggerFactory.getLogger(ModuleService.class);
 
+    /**
+     * Adds a new module to the database.
+     * @param code Module code (unique identifier).
+     * @param name Module name.
+     * @param passMark Pass mark for the module.
+     * @return true if added successfully, false otherwise.
+     */
     public boolean addModule(String code, String name, int passMark) {
         String sql = "INSERT INTO modules (module_code, name, pass_result) VALUES (?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();

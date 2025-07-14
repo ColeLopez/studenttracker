@@ -12,22 +12,44 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for database connection and file initialization.
+ * <p>
+ * This class provides static methods to manage the SQLite database file and obtain connections.
+ * <p>
+ * Usage:
+ * <pre>
+ *     Connection conn = DBUtil.getConnection();
+ * </pre>
+ * <p>
+ * This class cannot be instantiated.
  */
 public final class DBUtil {
+    /** SLF4J logger for DBUtil operations. */
     private static final Logger logger = LoggerFactory.getLogger(DBUtil.class);
 
+    /** Database folder name. */
     private static final String DB_FOLDER = "database";
+    /** Database file path. */
     private static final String DB_PATH = DB_FOLDER + "/data.db";
+    /** JDBC URL for SQLite database. */
     private static final String DB_URL = "jdbc:sqlite:" + DB_PATH;
 
     static {
         createDatabaseFileIfMissing();
     }
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private DBUtil() {
         // Prevent instantiation
     }
 
+    /**
+     * Creates the database file and folder if they do not exist.
+     * Logs the creation or existence of the file/folder.
+     *
+     * @throws RuntimeException if file creation fails
+     */
     private static void createDatabaseFileIfMissing() {
         try {
             Path folderPath = Paths.get(DB_FOLDER);
@@ -45,12 +67,16 @@ public final class DBUtil {
             }
         } catch (Exception e) {
             logger.error("Failed to create database file: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to create database file", e);
         }
     }
 
     /**
-     * Get a connection to the SQLite database.
-     * @return Connection object
+     * Gets a connection to the SQLite database.
+     * <p>
+     * Caller is responsible for closing the connection.
+     *
+     * @return Connection object to the database
      * @throws SQLException if connection fails
      */
     public static Connection getConnection() throws SQLException {

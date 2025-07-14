@@ -8,14 +8,36 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for initializing the database schema.
+ * <p>
+ * This class provides a static method to create all required tables for the application.
+ * It uses SQL statements to ensure tables exist and are up-to-date.
+ * <p>
+ * Usage:
+ * <pre>
+ *     DBInit.initializeDatabase();
+ * </pre>
+ * <p>
+ * This class cannot be instantiated.
  */
 public final class DBInit {
+    /** SLF4J logger for DBInit operations. */
     private static final Logger logger = LoggerFactory.getLogger(DBInit.class);
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private DBInit() {
         // Prevent instantiation
     }
 
+    /**
+     * Initializes the database schema by creating all required tables if they do not exist.
+     * <p>
+     * This method should be called once at application startup.
+     * It logs success or failure using SLF4J.
+     *
+     * @throws RuntimeException if database initialization fails
+     */
     public static void initializeDatabase() {
         String[] schemaStatements = {
             // Split the schema into Java-executable SQL commands
@@ -36,6 +58,7 @@ public final class DBInit {
             logger.info("Database initialized successfully.");
         } catch (SQLException e) {
             logger.error("Database initialization failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Database initialization failed", e);
         }
     }
 }

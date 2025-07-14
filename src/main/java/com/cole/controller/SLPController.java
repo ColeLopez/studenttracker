@@ -18,6 +18,22 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextInputDialog;
 
+/**
+ * Controller for managing Student Learning Pathways (SLPs).
+ * <p>
+ * Handles UI events and database operations for adding, editing, and deleting SLPs.
+ * <p>
+ * This class is responsible for:
+ * <ul>
+ *   <li>Loading SLPs from the database</li>
+ *   <li>Adding new SLPs</li>
+ *   <li>Editing existing SLPs</li>
+ *   <li>Deleting SLPs</li>
+ *   <li>Providing dialogs for SLP management</li>
+ * </ul>
+ * <p>
+ * All database operations are performed asynchronously using JavaFX Tasks.
+ */
 public class SLPController {
     private static final Logger logger = LoggerFactory.getLogger(SLPController.class);
     private final SLPService slpService = new SLPService();
@@ -27,6 +43,10 @@ public class SLPController {
 
     private final ObservableList<SLP> slpList = FXCollections.observableArrayList();
 
+    /**
+     * Initializes the controller and sets up UI bindings for the SLP table.
+     * This method is called automatically by the JavaFX framework after FXML loading.
+     */
     @FXML
     private void initialize() {
         codeColumn.setCellValueFactory(cellData -> cellData.getValue().slpCodeProperty());
@@ -35,6 +55,10 @@ public class SLPController {
         loadSLPs();
     }
 
+    /**
+     * Loads all SLPs from the database into the TableView.
+     * This method runs asynchronously and updates the TableView on success.
+     */
     public void loadSLPs() {
         Task<ObservableList<SLP>> task = new Task<>() {
             @Override
@@ -53,6 +77,10 @@ public class SLPController {
         new Thread(task).start();
     }
 
+    /**
+     * Handles adding a new SLP via a custom dialog.
+     * Invoked by the UI when the user clicks the "Add SLP" button.
+     */
     @FXML
     private void handleAddSLP() {
         // Custom dialog for SLP code and name
@@ -120,6 +148,11 @@ public class SLPController {
 
     // ...existing code...
 
+    /**
+     * Handles editing the selected SLP via a dialog.
+     * Invoked by the UI when the user clicks the "Edit SLP" button.
+     * Prompts for new code and name, and updates the SLP in the database.
+     */
     @FXML
     private void handleEditSLP() {
         SLP selected = slpTable.getSelectionModel().getSelectedItem();
@@ -167,6 +200,11 @@ public class SLPController {
         });
     }
 
+    /**
+     * Handles deleting the selected SLP after confirmation.
+     * Invoked by the UI when the user clicks the "Delete SLP" button.
+     * Prompts for confirmation before deleting from the database.
+     */
     @FXML
     private void handleDeleteSLP() {
         SLP selected = slpTable.getSelectionModel().getSelectedItem();
@@ -204,6 +242,11 @@ public class SLPController {
         });
     }
 
+    /**
+     * Shows an information dialog with the given title and message.
+     * @param title Dialog title (short description)
+     * @param message Information message (detailed)
+     */
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -212,6 +255,11 @@ public class SLPController {
         alert.showAndWait();
     }
 
+    /**
+     * Shows an error dialog with the given title and message.
+     * @param title Dialog title (short description)
+     * @param message Error message (detailed)
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
