@@ -124,4 +124,14 @@ public class DashboardController {
     private void handleManageSLPModules(ActionEvent event) {
         setCenterContent("/fxml/slpModules.fxml");
     }
+
+    /**
+     * Handles the action to manage Student Registration when the user clicks the corresponding button.
+     * Switches the center content to the Student Registration view.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleStudentRegistration(ActionEvent event) {
+        setCenterContent("/fxml/studentRegistration.fxml");
+    }
 }
