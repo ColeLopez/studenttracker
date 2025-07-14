@@ -1,24 +1,26 @@
 package com.cole.controller;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import com.cole.Service.SLPService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javafx.concurrent.Task;
 
 import com.cole.model.SLP;
-import com.cole.util.DBUtil;
+// ...existing code...
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextInputDialog;
 
 public class SLPController {
+    private static final Logger logger = LoggerFactory.getLogger(SLPController.class);
+    private final SLPService slpService = new SLPService();
     @FXML private TableView<SLP> slpTable;
     @FXML private TableColumn<SLP, String> codeColumn;
     @FXML private TableColumn<SLP, String> nameColumn;
@@ -34,76 +36,89 @@ public class SLPController {
     }
 
     public void loadSLPs() {
-        slpList.clear();
-        String sql = "SELECT slp_id, slp_code, name FROM slps";
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                slpList.add(new SLP(
-                    rs.getInt("slp_id"),
-                    rs.getString("slp_code"),
-                    rs.getString("name")
-                ));
+        Task<ObservableList<SLP>> task = new Task<>() {
+            @Override
+            protected ObservableList<SLP> call() {
+                return FXCollections.observableArrayList(slpService.getAllSLPs());
             }
-        } catch (SQLException e) {
-            showError("Database Error", e.getMessage());
-        }
+        };
+        task.setOnSucceeded(e -> {
+            slpList.clear();
+            slpList.addAll(task.getValue());
+        });
+        task.setOnFailed(e -> {
+            logger.error("Failed to load SLPs", task.getException());
+            showError("Database Error", task.getException().getMessage());
+        });
+        new Thread(task).start();
     }
 
     @FXML
     private void handleAddSLP() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Add SLP");
-        dialog.setHeaderText("Enter SLP Code and Name (comma separated):");
-        dialog.setContentText("Format: MSW2021, Word Processing");
+        // Custom dialog for SLP code and name
+        javafx.scene.control.Dialog<SLP> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("Add New SLP");
+        dialog.setHeaderText("Enter SLP details:");
 
-        dialog.showAndWait().ifPresent(input -> {
-            String[] parts = input.split(",", 2);
-            String code = parts.length > 0 ? parts[0].trim() : "";
-            String name = parts.length > 1 ? parts[1].trim() : "";
+        ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
-            if (code.isEmpty() || name.isEmpty()) {
-                showError("Invalid Input", "SLP Code and Name cannot be empty. Use: MSW2021, Word Processing");
-                return;
+        javafx.scene.control.TextField codeField = new javafx.scene.control.TextField();
+        codeField.setPromptText("SLP Code");
+
+        javafx.scene.control.TextField nameField = new javafx.scene.control.TextField();
+        nameField.setPromptText("SLP Name");
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new javafx.scene.control.Label("SLP Code:"), 0, 0);
+        grid.add(codeField, 1, 0);
+        grid.add(new javafx.scene.control.Label("SLP Name:"), 0, 1);
+        grid.add(nameField, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == addButtonType) {
+                String code = codeField.getText().trim();
+                String name = nameField.getText().trim();
+                if (code.isEmpty() || name.isEmpty()) {
+                    showError("Invalid Input", "Both SLP Code and Name are required.");
+                    return null;
+                }
+                return new SLP(0, code, name);
             }
-            if (isDuplicateSLPCode(code, null)) {
-                showError("Duplicate SLP Code", "An SLP with this code already exists.");
-                return;
-            }
-            String sql = "INSERT INTO slps (slp_code, name) VALUES (?, ?)";
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, code);
-                stmt.setString(2, name);
-                stmt.executeUpdate();
-                showInfo("SLP Added", "The SLP was successfully added.");
-                loadSLPs();
-            } catch (SQLException e) {
-                showError("Database Error", e.getMessage());
-            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(slp -> {
+            if (slp == null) return;
+            Task<Boolean> task = new Task<>() {
+                @Override
+                protected Boolean call() {
+                    if (slpService.isDuplicateSLPCode(slp.getSlpCode(), null)) {
+                        return false;
+                    }
+                    return slpService.addSLP(slp.getSlpCode(), slp.getName());
+                }
+            };
+            task.setOnSucceeded(e -> {
+                if (task.getValue()) {
+                    showInfo("SLP Added", "The SLP was successfully added.");
+                    loadSLPs();
+                } else {
+                    showError("Duplicate SLP Code", "An SLP with this code already exists or could not be added.");
+                }
+            });
+            task.setOnFailed(e -> {
+                logger.error("Failed to add SLP", task.getException());
+                showError("Database Error", task.getException().getMessage());
+            });
+            new Thread(task).start();
         });
     }
 
-    private boolean isDuplicateSLPCode(String slpCode, Integer excludeId) {
-        String sql = "SELECT 1 FROM slps WHERE slp_code = ?";
-        if (excludeId != null) {
-            sql += " AND slp_id <> ?";
-        }
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, slpCode);
-            if (excludeId != null) {
-                stmt.setInt(2, excludeId);
-            }
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            showError("Database Error", "Error checking for duplicate SLP code: " + e.getMessage());
-        }
-        return false;
-    }
+    // ...existing code...
 
     @FXML
     private void handleEditSLP() {
@@ -127,28 +142,28 @@ public class SLPController {
                 showError("Invalid Format", "SLP Code and Name cannot be empty. Use: MSW2021, Word Processing");
                 return;
             }
-
-            if (isDuplicateSLPCode(newCode, selected.getId())) {
-                showError("Duplicate SLP Code", "An SLP with this code already exists.");
-                return;
-            }
-
-            String sql = "UPDATE slps SET slp_code = ?, name = ? WHERE slp_id = ?";
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setString(1, newCode);
-                stmt.setString(2, newName);
-                stmt.setInt(3, selected.getId());
-                int affected = stmt.executeUpdate();
-                if (affected > 0) {
+            Task<Boolean> task = new Task<>() {
+                @Override
+                protected Boolean call() {
+                    if (slpService.isDuplicateSLPCode(newCode, selected.getId())) {
+                        return false;
+                    }
+                    return slpService.updateSLP(selected.getId(), newCode, newName);
+                }
+            };
+            task.setOnSucceeded(e -> {
+                if (task.getValue()) {
                     showInfo("SLP Updated", "The SLP was successfully updated.");
                     loadSLPs();
                 } else {
-                    showError("Update Failed", "No SLP was updated. Please try again.");
+                    showError("Duplicate SLP Code", "An SLP with this code already exists or could not be updated.");
                 }
-            } catch (SQLException e) {
-                showError("Database Error", e.getMessage());
-            }
+            });
+            task.setOnFailed(e -> {
+                logger.error("Failed to update SLP", task.getException());
+                showError("Database Error", task.getException().getMessage());
+            });
+            new Thread(task).start();
         });
     }
 
@@ -166,16 +181,25 @@ public class SLPController {
 
         confirm.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                String sql = "DELETE FROM slps WHERE slp_id = ?";
-                try (Connection conn = DBUtil.getConnection();
-                     PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setInt(1, selected.getId());
-                    stmt.executeUpdate();
-                    showInfo("SLP Deleted", "The SLP was successfully deleted.");
-                    loadSLPs();
-                } catch (SQLException e) {
-                    showError("Database Error", e.getMessage());
-                }
+                Task<Boolean> task = new Task<>() {
+                    @Override
+                    protected Boolean call() {
+                        return slpService.deleteSLP(selected.getId());
+                    }
+                };
+                task.setOnSucceeded(e -> {
+                    if (task.getValue()) {
+                        showInfo("SLP Deleted", "The SLP was successfully deleted.");
+                        loadSLPs();
+                    } else {
+                        showError("Delete Failed", "No SLP was deleted. Please try again.");
+                    }
+                });
+                task.setOnFailed(e -> {
+                    logger.error("Failed to delete SLP", task.getException());
+                    showError("Database Error", task.getException().getMessage());
+                });
+                new Thread(task).start();
             }
         });
     }
