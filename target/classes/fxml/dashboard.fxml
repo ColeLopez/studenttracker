@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.DashboardController">
    <top>
@@ -24,7 +19,7 @@
           <Menu mnemonicParsing="false" text="Menu">
             <items>
               <MenuItem mnemonicParsing="false" text="View Students" />
-                  <MenuItem mnemonicParsing="false" text="Register Student" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleStudentRegistration" text="Register Student" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="SLPs">
@@ -42,6 +37,6 @@
       </MenuBar>
    </top>
    <center>
-      <AnchorPane fx:id="contentArea"/>
+      <AnchorPane fx:id="contentArea" />
    </center>
 </BorderPane>
