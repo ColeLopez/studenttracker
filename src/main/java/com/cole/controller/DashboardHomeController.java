@@ -1,14 +1,17 @@
 package com.cole.controller;
 
-import com.cole.util.DBUtil;
+import com.cole.Service.DashboardService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+// ...existing code...
 
 public class DashboardHomeController {
+    private static final Logger logger = LoggerFactory.getLogger(DashboardHomeController.class);
+    private final DashboardService dashboardService = new DashboardService();
 
     @FXML private Label studentCountLabel;
     @FXML private Label upcomingGraduationsLabel;
@@ -19,23 +22,32 @@ public class DashboardHomeController {
     }
 
     private void loadDashboardStats() {
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM students");
-            if (rs.next()) {
-                studentCountLabel.setText(rs.getInt(1) + " Students");
+        Task<int[]> task = new Task<>() {
+            @Override
+            protected int[] call() {
+                int studentCount = dashboardService.getStudentCount();
+                int graduatedCount = dashboardService.getGraduatedCount();
+                return new int[] { studentCount, graduatedCount };
             }
-
-            rs = stmt.executeQuery("SELECT COUNT(*) FROM students WHERE status = 'Graduated'");
-            if (rs.next()) {
-                upcomingGraduationsLabel.setText(rs.getInt(1) + " Graduates");
+        };
+        task.setOnSucceeded(e -> {
+            int[] stats = task.getValue();
+            if (stats[0] >= 0) {
+                studentCountLabel.setText(stats[0] + " Students");
+            } else {
+                studentCountLabel.setText("Error loading stats.");
             }
-
-        } catch (Exception e) {
+            if (stats[1] >= 0) {
+                upcomingGraduationsLabel.setText(stats[1] + " Graduates");
+            } else {
+                upcomingGraduationsLabel.setText("Error loading stats.");
+            }
+        });
+        task.setOnFailed(e -> {
+            logger.error("Failed to load dashboard stats", task.getException());
             studentCountLabel.setText("Error loading stats.");
             upcomingGraduationsLabel.setText("Error loading stats.");
-            e.printStackTrace();
-        }
+        });
+        new Thread(task).start();
     }
 }
