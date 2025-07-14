@@ -1,9 +1,21 @@
 package com.cole.util;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class DBInit {
+/**
+ * Utility class for initializing the database schema.
+ */
+public final class DBInit {
+    private static final Logger logger = LoggerFactory.getLogger(DBInit.class);
+
+    private DBInit() {
+        // Prevent instantiation
+    }
+
     public static void initializeDatabase() {
         String[] schemaStatements = {
             // Split the schema into Java-executable SQL commands
@@ -21,10 +33,9 @@ public class DBInit {
             for (String sql : schemaStatements) {
                 stmt.execute(sql);
             }
-            System.out.println("Database initialized successfully.");
-        } catch (Exception e) {
-            System.err.println("Database initialization failed: " + e.getMessage());
-            e.printStackTrace();
+            logger.info("Database initialized successfully.");
+        } catch (SQLException e) {
+            logger.error("Database initialization failed: {}", e.getMessage(), e);
         }
     }
 }
