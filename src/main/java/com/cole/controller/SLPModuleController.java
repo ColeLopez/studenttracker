@@ -2,7 +2,10 @@ package com.cole.controller;
 
 import com.cole.model.Module;
 import com.cole.model.SLP;
-import com.cole.util.DBUtil;
+import com.cole.Service.SLPModuleService;
+import javafx.concurrent.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -13,7 +16,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-import java.sql.*;
+// ...existing code...
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +26,8 @@ import java.util.Optional;
  * Handles UI events and database operations for linking/unlinking modules.
  */
 public class SLPModuleController {
+    private static final Logger logger = LoggerFactory.getLogger(SLPModuleController.class);
+    private final SLPModuleService slpModuleService = new SLPModuleService();
 
     @FXML private ComboBox<SLP> slpComboBox;
     @FXML private TableView<Module> moduleTable;
@@ -33,20 +38,7 @@ public class SLPModuleController {
     private final ObservableList<SLP> slps = FXCollections.observableArrayList();
     private final ObservableList<Module> linkedModules = FXCollections.observableArrayList();
 
-    // SQL Queries as constants
-    private static final String SELECT_ALL_SLPS = "SELECT * FROM slps";
-    private static final String SELECT_MODULES_FOR_SLP =
-            "SELECT m.module_id, m.module_code, m.name, m.pass_rate " +
-            "FROM modules m JOIN slp_modules sm ON sm.module_id = m.module_id WHERE sm.slp_id = ?";
-    private static final String SELECT_ALL_MODULES = "SELECT * FROM modules ORDER BY module_code";
-    private static final String CHECK_MODULE_LINKED =
-            "SELECT 1 FROM slp_modules WHERE slp_id = ? AND module_id = ?";
-    private static final String INSERT_SLP_MODULE =
-            "INSERT INTO slp_modules (slp_id, module_id) VALUES (?, ?)";
-    private static final String DELETE_SLP_MODULE =
-            "DELETE FROM slp_modules WHERE slp_id = ? AND module_id = ?";
-    private static final String INSERT_MODULE =
-            "INSERT INTO modules (module_code, name, pass_rate) VALUES (?, ?, ?)";
+    // ...existing code...
 
     /**
      * Initializes the controller and sets up UI bindings.
@@ -71,22 +63,22 @@ public class SLPModuleController {
      * Loads all SLPs from the database into the ComboBox.
      */
     private void loadSLPs() {
-        slps.clear();
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(SELECT_ALL_SLPS)) {
-
-            while (rs.next()) {
-                slps.add(new SLP(
-                        rs.getInt("slp_id"),
-                        rs.getString("slp_code"),
-                        rs.getString("name")
-                ));
+        Task<ObservableList<SLP>> task = new Task<>() {
+            @Override
+            protected ObservableList<SLP> call() {
+                return FXCollections.observableArrayList(slpModuleService.getAllSLPs());
             }
+        };
+        task.setOnSucceeded(e -> {
+            slps.clear();
+            slps.addAll(task.getValue());
             slpComboBox.setItems(slps);
-        } catch (SQLException e) {
-            showError("Failed to load SLPs", e.getMessage());
-        }
+        });
+        task.setOnFailed(e -> {
+            logger.error("Failed to load SLPs", task.getException());
+            showError("Failed to load SLPs", task.getException().getMessage());
+        });
+        new Thread(task).start();
     }
 
     /**
@@ -94,24 +86,22 @@ public class SLPModuleController {
      * @param slpId SLP identifier
      */
     private void loadModulesForSLP(int slpId) {
-        linkedModules.clear();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(SELECT_MODULES_FOR_SLP)) {
-            stmt.setInt(1, slpId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    linkedModules.add(new Module(
-                            rs.getInt("module_id"),
-                            rs.getString("module_code"),
-                            rs.getString("name"),
-                            rs.getInt("pass_rate")
-                    ));
-                }
+        Task<ObservableList<Module>> task = new Task<>() {
+            @Override
+            protected ObservableList<Module> call() {
+                return FXCollections.observableArrayList(slpModuleService.getModulesForSLP(slpId));
             }
+        };
+        task.setOnSucceeded(e -> {
+            linkedModules.clear();
+            linkedModules.addAll(task.getValue());
             moduleTable.setItems(linkedModules);
-        } catch (SQLException e) {
-            showError("Failed to load modules", e.getMessage());
-        }
+        });
+        task.setOnFailed(e -> {
+            logger.error("Failed to load modules for SLP {}", slpId, task.getException());
+            showError("Failed to load modules", task.getException().getMessage());
+        });
+        new Thread(task).start();
     }
 
     /**
@@ -126,33 +116,28 @@ public class SLPModuleController {
             return;
         }
 
-        ObservableList<Module> allModules = FXCollections.observableArrayList();
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(SELECT_ALL_MODULES)) {
-
-            while (rs.next()) {
-                allModules.add(new Module(
-                        rs.getInt("module_id"),
-                        rs.getString("module_code"),
-                        rs.getString("name"),
-                        rs.getInt("pass_rate")
-                ));
+        Task<ObservableList<Module>> task = new Task<>() {
+            @Override
+            protected ObservableList<Module> call() {
+                return FXCollections.observableArrayList(slpModuleService.getAllModules());
             }
-        } catch (SQLException e) {
-            showError("Database Error", e.getMessage());
-            return;
-        }
-
-        // Show module selection dialog
-        Optional<List<Module>> result = showModuleSelectionDialog(allModules);
-        result.ifPresent(selectedModules -> {
-            if (selectedModules.isEmpty()) {
-                showError("No Selection", "No modules were selected.");
-                return;
-            }
-            linkModulesToSLP(selectedSLP, selectedModules);
+        };
+        task.setOnSucceeded(e -> {
+            Optional<List<Module>> result = showModuleSelectionDialog(task.getValue());
+            result.ifPresent(selectedModules -> {
+                if (selectedModules.isEmpty()) {
+                    showError("No Selection", "No modules were selected.");
+                    return;
+                }
+                linkModulesToSLP(selectedSLP, selectedModules);
+            });
         });
+        task.setOnFailed(e -> {
+            logger.error("Failed to load all modules", task.getException());
+            showError("Database Error", task.getException().getMessage());
+        });
+        new Thread(task).start();
+
     }
 
     /**
@@ -161,56 +146,26 @@ public class SLPModuleController {
      * @param modules List of modules to link
      */
     private void linkModulesToSLP(SLP slp, List<Module> modules) {
-        StringBuilder alreadyLinkedModules = new StringBuilder();
-        Connection conn = null;
-        try {
-            conn = DBUtil.getConnection();
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement checkStmt = conn.prepareStatement(CHECK_MODULE_LINKED);
-                 PreparedStatement insertStmt = conn.prepareStatement(INSERT_SLP_MODULE)) {
-
-                for (Module module : modules) {
-                    checkStmt.setInt(1, slp.getId());
-                    checkStmt.setInt(2, module.getId());
-                    try (ResultSet rs = checkStmt.executeQuery()) {
-                        if (rs.next()) {
-                            alreadyLinkedModules.append(module.getModuleCode()).append(", ");
-                        } else {
-                            insertStmt.setInt(1, slp.getId());
-                            insertStmt.setInt(2, module.getId());
-                            insertStmt.executeUpdate();
-                        }
-                    }
-                }
+        Task<List<String>> task = new Task<>() {
+            @Override
+            protected List<String> call() {
+                return slpModuleService.linkModulesToSLP(slp.getId(), modules);
             }
-            conn.commit();
-
-            if (alreadyLinkedModules.length() > 0) {
-                String msgModules = alreadyLinkedModules.substring(0, alreadyLinkedModules.length() - 2);
+        };
+        task.setOnSucceeded(e -> {
+            List<String> alreadyLinked = task.getValue();
+            if (!alreadyLinked.isEmpty()) {
+                String msgModules = String.join(", ", alreadyLinked);
                 showError("Modules Already Linked",
                         "The following modules are already linked to this SLP and were not linked:\n" + msgModules);
             }
             loadModulesForSLP(slp.getId());
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    showError("Rollback Error", rollbackEx.getMessage());
-                }
-            }
-            showError("Database Error", e.getMessage());
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    // Optionally log error: System.err.println("Error closing connection: " + closeEx.getMessage());
-                }
-            }
-        }
+        });
+        task.setOnFailed(e -> {
+            logger.error("Failed to link modules to SLP {}", slp.getId(), task.getException());
+            showError("Database Error", task.getException().getMessage());
+        });
+        new Thread(task).start();
     }
 
     /**
@@ -281,16 +236,24 @@ public class SLPModuleController {
         Optional<ButtonType> result = confirm.showAndWait();
 
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(DELETE_SLP_MODULE)) {
-                stmt.setInt(1, selectedSLP.getId());
-                stmt.setInt(2, selectedModule.getId());
-                stmt.executeUpdate();
-
-                loadModulesForSLP(selectedSLP.getId());
-            } catch (SQLException e) {
-                showError("Database Error", e.getMessage());
-            }
+            Task<Boolean> task = new Task<>() {
+                @Override
+                protected Boolean call() {
+                    return slpModuleService.removeModuleFromSLP(selectedSLP.getId(), selectedModule.getId());
+                }
+            };
+            task.setOnSucceeded(e2 -> {
+                if (task.getValue()) {
+                    loadModulesForSLP(selectedSLP.getId());
+                } else {
+                    showError("Database Error", "Failed to remove module from SLP.");
+                }
+            });
+            task.setOnFailed(e2 -> {
+                logger.error("Failed to remove module from SLP", task.getException());
+                showError("Database Error", task.getException().getMessage());
+            });
+            new Thread(task).start();
         }
     }
 
@@ -298,25 +261,55 @@ public class SLPModuleController {
     private void handleNewModule() {
         Optional<Module> result = showNewModuleDialog();
         result.ifPresent(module -> {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(INSERT_MODULE)) {
-
-                stmt.setString(1, module.getModuleCode());
-                stmt.setString(2, module.getName());
-                stmt.setInt(3, module.getPassRate());
-                stmt.executeUpdate();
-
-                loadSLPs(); // Refresh the SLP list after insertion
-
-                Alert success = new Alert(Alert.AlertType.INFORMATION);
-                success.setTitle("Module Added");
-                success.setHeaderText(null);
-                success.setContentText("Module was added successfully.");
-                success.showAndWait();
-
-            } catch (SQLException e) {
-                showError("Database Error", e.getMessage());
-            }
+            SLP previouslySelectedSLP = slpComboBox.getSelectionModel().getSelectedItem();
+            Task<Boolean> task = new Task<>() {
+                @Override
+                protected Boolean call() {
+                    return slpModuleService.addNewModule(module);
+                }
+            };
+            task.setOnSucceeded(e -> {
+                if (task.getValue()) {
+                    // Refresh the SLP list after insertion
+                    Task<ObservableList<SLP>> reloadTask = new Task<>() {
+                        @Override
+                        protected ObservableList<SLP> call() {
+                            return FXCollections.observableArrayList(slpModuleService.getAllSLPs());
+                        }
+                    };
+                    reloadTask.setOnSucceeded(ev -> {
+                        slps.clear();
+                        slps.addAll(reloadTask.getValue());
+                        slpComboBox.setItems(slps);
+                        // Restore previous selection if possible
+                        if (previouslySelectedSLP != null) {
+                            for (SLP slp : slps) {
+                                if (slp.getId() == previouslySelectedSLP.getId()) {
+                                    slpComboBox.getSelectionModel().select(slp);
+                                    break;
+                                }
+                            }
+                        }
+                        Alert successAlert = new Alert(Alert.AlertType.INFORMATION);
+                        successAlert.setTitle("Module Added");
+                        successAlert.setHeaderText(null);
+                        successAlert.setContentText("Module was added successfully.");
+                        successAlert.showAndWait();
+                    });
+                    reloadTask.setOnFailed(ev -> {
+                        logger.error("Failed to reload SLPs after module add", reloadTask.getException());
+                        showError("Failed to reload SLPs", reloadTask.getException().getMessage());
+                    });
+                    new Thread(reloadTask).start();
+                } else {
+                    showError("Database Error", "Failed to add new module.");
+                }
+            });
+            task.setOnFailed(e -> {
+                logger.error("Failed to add new module", task.getException());
+                showError("Database Error", task.getException().getMessage());
+            });
+            new Thread(task).start();
         });
     }
 
@@ -394,8 +387,6 @@ public class SLPModuleController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-        // Optionally log error: System.err.println(title + ": " + message);
-        // Use a logging framework for production error tracking
-        // org.slf4j.LoggerFactory.getLogger(SLPModuleController.class).error("{}: {}", title, message);
+        logger.error("{}: {}", title, message);
     }
 }
