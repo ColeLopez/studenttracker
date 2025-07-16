@@ -134,4 +134,14 @@ public class DashboardController {
     private void handleStudentRegistration(ActionEvent event) {
         setCenterContent("/fxml/studentRegistration.fxml");
     }
+
+    /**
+     * Handles the action to view students when the user clicks the corresponding button.
+     * Switches the center content to the Student View.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleViewStudents(ActionEvent event) {
+        setCenterContent("/fxml/studentView.fxml");
+    }
 }
