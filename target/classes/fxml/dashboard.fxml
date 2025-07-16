@@ -18,7 +18,7 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Menu">
             <items>
-              <MenuItem mnemonicParsing="false" text="View Students" />
+              <MenuItem mnemonicParsing="false" onAction="#handleViewStudents" text="View Students" />
                   <MenuItem mnemonicParsing="false" onAction="#handleStudentRegistration" text="Register Student" />
             </items>
           </Menu>
