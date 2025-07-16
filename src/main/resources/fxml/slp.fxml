@@ -13,9 +13,9 @@
          <children>
             <ToolBar prefHeight="40.0" prefWidth="200.0">
               <items>
-                <Button onAction="#handleAddSLP" text="Add SLP" />
-              <Button onAction="#handleEditSLP" text="Edit SLP" />
-              <Button onAction="#handleDeleteSLP" text="Delete SLP" />
+                  <Button onAction="#handleAddSLP" text="Add SLP" />
+                  <Button onAction="#handleEditSLP" text="Edit SLP" />
+                  <Button onAction="#handleDeleteSLP" text="Delete SLP" />
               </items>
             </ToolBar>
             <TableView fx:id="slpTable" prefHeight="400.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
