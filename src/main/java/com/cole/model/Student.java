@@ -13,6 +13,7 @@ public class Student {
     private final SimpleStringProperty phoneNumber;
     private final SimpleStringProperty slp;
     private final SimpleStringProperty status;
+    
 
     public Student(int id, String studentNumber, String firstName, String lastName, String email, String phoneNumber, String slp, String status) {
         this.id = new SimpleIntegerProperty(id);

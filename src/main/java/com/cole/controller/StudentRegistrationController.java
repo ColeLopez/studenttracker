@@ -1,6 +1,8 @@
 package com.cole.controller;
 
 import com.cole.model.SLP;
+import com.cole.model.Module;
+import com.cole.Service.SLPModuleService;
 import com.cole.util.DBUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -97,9 +99,12 @@ public class StudentRegistrationController {
             }
 
             // Insert
+
+            int newStudentId = -1;
+            // Insert student and get generated ID
             try (PreparedStatement insertStmt = conn.prepareStatement(
-                    "INSERT INTO students (student_number, first_name, last_name, email, phone, enrollment_date, current_slp_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-            )) {
+                    "INSERT INTO students (student_number, first_name, last_name, email, phone, enrollment_date, current_slp_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS)) {
                 insertStmt.setString(1, studentNumber);
                 insertStmt.setString(2, firstName);
                 insertStmt.setString(3, lastName);
@@ -108,8 +113,28 @@ public class StudentRegistrationController {
                 insertStmt.setString(6, enrollmentDate.toString());
                 insertStmt.setInt(7, selectedSLP.getId());
                 insertStmt.setString(8, status);
-
                 insertStmt.executeUpdate();
+                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        newStudentId = generatedKeys.getInt(1);
+                    }
+                }
+            }
+
+            // Auto-link modules to student based on SLP (one row per module)
+            if (newStudentId != -1) {
+                SLPModuleService slpModuleService = new SLPModuleService();
+                for (Module module : slpModuleService.getModulesForSLP(selectedSLP.getId())) {
+                    try (PreparedStatement smInsert = conn.prepareStatement(
+                            "INSERT INTO student_modules (student_id, module_id, module_code, module_name, received_book) VALUES (?, ?, ?, ?, ?)")) {
+                        smInsert.setInt(1, newStudentId);
+                        smInsert.setInt(2, module.getId());
+                        smInsert.setString(3, module.getModuleCode());
+                        smInsert.setString(4, module.getName());
+                        smInsert.setBoolean(5, false); // Default received_book
+                        smInsert.executeUpdate();
+                    }
+                }
             }
 
             Alert success = new Alert(Alert.AlertType.INFORMATION);
