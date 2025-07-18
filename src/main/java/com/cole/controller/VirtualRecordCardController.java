@@ -373,7 +373,6 @@ public class VirtualRecordCardController {
         if (result.isPresent()) {
             java.util.List<String> values = result.get();
             String oldSlp = selectedStudent.getSlp();
-            String newSlp = values.get(4);
             // Fix: update students table to use correct column names (phone -> phone, SLP -> current_slp_id)
             String getSlpIdSql = "SELECT slp_id FROM slps WHERE name = ?";
             int newSlpId = -1;
