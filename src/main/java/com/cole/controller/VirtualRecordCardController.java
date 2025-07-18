@@ -217,6 +217,31 @@ public class VirtualRecordCardController {
         loadStudentDetails();
         loadStudentModules();
         loadNotes();
+        loadFollowUps();
+    }
+    /**
+     * Loads the follow-ups for the selected student from the database.
+     * Populates the followUps ObservableList.
+     */
+    private void loadFollowUps() {
+        followUps.clear();
+        if (selectedStudent == null) return;
+        String sql = "SELECT followup_id, due_date, description, completed FROM follow_ups WHERE student_id = ? ORDER BY due_date DESC";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, selectedStudent.getId());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                followUps.add(new FollowUp(
+                    rs.getInt("followup_id"),
+                    rs.getString("due_date"),
+                    rs.getString("description"),
+                    rs.getInt("completed") == 1
+                ));
+            }
+        } catch (SQLException e) {
+            logger.error("Error loading follow-ups", e);
+        }
     }
 
 
@@ -346,11 +371,55 @@ public class VirtualRecordCardController {
      * Populates the studentModules ObservableList.
      */
     private void loadStudentModules() {
-        // ...existing code...
-        // (No duplicate ColorCodedDoubleCell here)
+        studentModules.clear();
+        if (selectedStudent == null) return;
+        logger.info("Loading modules for student_id: {}", selectedStudent.getId());
+        String sql = "SELECT * FROM student_modules WHERE student_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, selectedStudent.getId());
+            ResultSet rs = stmt.executeQuery();
+            int count = 0;
+            while (rs.next()) {
+                StudentModule sm = new StudentModule(
+                    rs.getInt("student_id"),
+                    rs.getInt("module_id"),
+                    rs.getString("module_code"),
+                    rs.getString("module_name"),
+                    rs.getBoolean("received_book"),
+                    rs.getObject("formative") != null ? rs.getDouble("formative") : 0.0,
+                    rs.getObject("summative") != null ? rs.getDouble("summative") : 0.0,
+                    rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : 0.0
+                );
+                studentModules.add(sm);
+                count++;
+            }
+            logger.info("Loaded {} modules for student_id {}", count, selectedStudent.getId());
+        } catch (SQLException e) {
+            logger.error("Error loading student modules", e);
+        }
+        if (studentModules.isEmpty()) {
+            showError("No Modules Found", "This student is not registered for any modules.");
+        }
+
+        // --- TableView Column Setup ---
+        if (moduleCodeColumn != null) {
+            moduleCodeColumn.setCellValueFactory(new PropertyValueFactory<>("moduleCode"));
+        }
+        if (moduleNameColumn != null) {
+            moduleNameColumn.setCellValueFactory(new PropertyValueFactory<>("moduleName"));
+        }
+        if (formativeColumn != null) {
+            formativeColumn.setCellValueFactory(new PropertyValueFactory<>("formative"));
+            formativeColumn.setCellFactory(ColorCodedDoubleCell.forExamType("formative", this));
+        }
+        if (summativeColumn != null) {
+            summativeColumn.setCellValueFactory(new PropertyValueFactory<>("summative"));
+            summativeColumn.setCellFactory(ColorCodedDoubleCell.forExamType("summative", this));
+        }
         if (supplementaryColumn != null) {
             supplementaryColumn.setCellValueFactory(new PropertyValueFactory<>("supplementary"));
-            supplementaryColumn.setCellFactory(col -> new ColorCodedDoubleCell("supplementary", this));
+            supplementaryColumn.setCellFactory(ColorCodedDoubleCell.forExamType("supplementary", this));
         }
         if (bookIssuedColumn != null) {
             bookIssuedColumn.setCellValueFactory(cellData -> {
@@ -429,11 +498,6 @@ public class VirtualRecordCardController {
             }
         }
     }
-
-    // Editable cell for exam type columns
-    // (No duplicate EditableDoubleCell or ColorCodedDoubleCell here)
-    // ...existing code...
-
 
     /**
      * Updates the received_book status in the database for a student-module pair.
