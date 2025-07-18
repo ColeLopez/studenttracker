@@ -5,11 +5,11 @@ public class StudentModule {
     private int moduleId;
     private String moduleCode;
     private String moduleName;
-    private String examType;
     private boolean receivedBook;
     private Double formative;
     private Double summative;
     private Double supplementary;
+    private int passRate = 50; // Default to 50 if not set
 
     public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName, String examType, boolean receivedBook) {
         this(studentId, moduleId, moduleCode, moduleName, receivedBook, null, null, null);
@@ -24,6 +24,15 @@ public class StudentModule {
         this.formative = formative;
         this.summative = summative;
         this.supplementary = supplementary;
+        // passRate will be set by setter after construction if needed
+    }
+
+    public int getPassRate() {
+        return passRate;
+    }
+
+    public void setPassRate(int passRate) {
+        this.passRate = passRate;
     }
 
     public int getStudentId() {
@@ -42,9 +51,6 @@ public class StudentModule {
         return moduleName;
     }
 
-    public String getExamType() {
-        return examType;
-    }
 
     public boolean isReceivedBook() {
         return receivedBook;
