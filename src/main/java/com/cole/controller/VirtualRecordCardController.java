@@ -1,4 +1,3 @@
-// ...existing code...
 package com.cole.controller;
 
 import java.sql.Connection;
@@ -111,13 +110,34 @@ public class VirtualRecordCardController {
             if (empty) {
                 setText(null);
                 setGraphic(null);
+                setStyle("");
             } else if (isEditing()) {
                 textField.setText(item == null ? "" : item.toString());
                 setGraphic(textField);
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                // Color code while editing
+                StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+                int passRate = (sm != null) ? sm.getPassRate() : 50;
+                if (item != null && item >= passRate) {
+                    setStyle("-fx-background-color: #c8e6c9;");
+                } else if (item != null) {
+                    setStyle("-fx-background-color: #ffcdd2;");
+                } else {
+                    setStyle("");
+                }
             } else {
                 setText(item == null ? "" : item.toString());
                 setContentDisplay(ContentDisplay.TEXT_ONLY);
+                // Color code when not editing
+                StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+                int passRate = (sm != null) ? sm.getPassRate() : 50;
+                if (item != null && item >= passRate) {
+                    setStyle("-fx-background-color: #c8e6c9;");
+                } else if (item != null) {
+                    setStyle("-fx-background-color: #ffcdd2;");
+                } else {
+                    setStyle("");
+                }
             }
         }
         @Override
@@ -137,36 +157,6 @@ public class VirtualRecordCardController {
         }
     }
 
-    // TableCell for color coding pass/fail in exam columns
-    public static class ColorCodedDoubleCell extends EditableDoubleCell {
-        public ColorCodedDoubleCell(String examType, VirtualRecordCardController controller) {
-            super(examType, controller);
-        }
-
-        @Override
-        public void updateItem(Double item, boolean empty) {
-            super.updateItem(item, empty);
-            if (empty || item == null) {
-                setStyle("");
-            } else {
-                // Get pass rate from StudentModule (default to 50 if not found)
-                int passRate = 50;
-                try {
-                    StudentModule sm = (StudentModule) getTableRow().getItem();
-                    if (sm != null) {
-                        java.lang.reflect.Field f = sm.getClass().getDeclaredField("passRate");
-                        f.setAccessible(true);
-                        passRate = f.getInt(sm);
-                    }
-                } catch (Exception ignore) {}
-                if (item >= passRate) {
-                    setStyle("-fx-background-color: #c8e6c9;"); // light green
-                } else {
-                    setStyle("-fx-background-color: #ffcdd2;"); // light red
-                }
-            }
-        }
-    }
     // FXML fields for module table and follow-up table
     @FXML private TableView<StudentModule> moduleTable;
     @FXML private TableColumn<StudentModule, String> moduleCodeColumn;
@@ -374,7 +364,7 @@ public class VirtualRecordCardController {
         studentModules.clear();
         if (selectedStudent == null) return;
         logger.info("Loading modules for student_id: {}", selectedStudent.getId());
-        String sql = "SELECT * FROM student_modules WHERE student_id = ?";
+        String sql = "SELECT sm.*, m.pass_rate FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id WHERE sm.student_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, selectedStudent.getId());
@@ -391,6 +381,12 @@ public class VirtualRecordCardController {
                     rs.getObject("summative") != null ? rs.getDouble("summative") : 0.0,
                     rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : 0.0
                 );
+                // Set passRate if setter exists
+                try {
+                    int passRate = rs.getObject("pass_rate") != null ? rs.getInt("pass_rate") : 50;
+                    java.lang.reflect.Method setPassRate = sm.getClass().getMethod("setPassRate", int.class);
+                    setPassRate.invoke(sm, passRate);
+                } catch (Exception ignore) {}
                 studentModules.add(sm);
                 count++;
             }
@@ -409,18 +405,7 @@ public class VirtualRecordCardController {
         if (moduleNameColumn != null) {
             moduleNameColumn.setCellValueFactory(new PropertyValueFactory<>("moduleName"));
         }
-        if (formativeColumn != null) {
-            formativeColumn.setCellValueFactory(new PropertyValueFactory<>("formative"));
-            formativeColumn.setCellFactory(ColorCodedDoubleCell.forExamType("formative", this));
-        }
-        if (summativeColumn != null) {
-            summativeColumn.setCellValueFactory(new PropertyValueFactory<>("summative"));
-            summativeColumn.setCellFactory(ColorCodedDoubleCell.forExamType("summative", this));
-        }
-        if (supplementaryColumn != null) {
-            supplementaryColumn.setCellValueFactory(new PropertyValueFactory<>("supplementary"));
-            supplementaryColumn.setCellFactory(ColorCodedDoubleCell.forExamType("supplementary", this));
-        }
+        // Removed setCellValueFactory for exam columns; now set in initialize()
         if (bookIssuedColumn != null) {
             bookIssuedColumn.setCellValueFactory(cellData -> {
                 StudentModule sm = cellData.getValue();
@@ -437,7 +422,13 @@ public class VirtualRecordCardController {
                 return cell;
             });
         }
-        if (moduleTable != null) moduleTable.setItems(studentModules);
+        if (moduleTable != null) {
+            moduleTable.setItems(studentModules);
+            System.out.println("[VirtualRecordCardController] moduleTable items set, row count: " + studentModules.size());
+            // Force refresh to ensure custom cell rendering (color coding) is applied
+            moduleTable.refresh();
+            System.out.println("[VirtualRecordCardController] moduleTable refreshed, row count: " + moduleTable.getItems().size());
+        }
 
         // Notes ListView setup
         if (noteList != null) {
@@ -569,6 +560,23 @@ public class VirtualRecordCardController {
 
     @FXML
     private void initialize() {
-        // Hint: initialize() will be called when the associated FXML has been completely loaded.
+        System.out.println("[VirtualRecordCardController] initialize() called");
+        // Make TableView and columns editable
+        if (moduleTable != null) moduleTable.setEditable(true);
+        if (formativeColumn != null) {
+            formativeColumn.setCellValueFactory(new PropertyValueFactory<>("formative"));
+            formativeColumn.setCellFactory(EditableDoubleCell.forExamType("formative", this));
+            formativeColumn.setEditable(true);
+        }
+        if (summativeColumn != null) {
+            summativeColumn.setCellValueFactory(new PropertyValueFactory<>("summative"));
+            summativeColumn.setCellFactory(EditableDoubleCell.forExamType("summative", this));
+            summativeColumn.setEditable(true);
+        }
+        if (supplementaryColumn != null) {
+            supplementaryColumn.setCellValueFactory(new PropertyValueFactory<>("supplementary"));
+            supplementaryColumn.setCellFactory(EditableDoubleCell.forExamType("supplementary", this));
+            supplementaryColumn.setEditable(true);
+        }
     }
 }
