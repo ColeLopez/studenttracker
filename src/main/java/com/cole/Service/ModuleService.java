@@ -18,7 +18,7 @@ public class ModuleService {
      * @return true if added successfully, false otherwise.
      */
     public boolean addModule(String code, String name, int passMark) {
-        String sql = "INSERT INTO modules (module_code, name, pass_result) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO modules (module_code, name, pass_rate) VALUES (?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, code);
