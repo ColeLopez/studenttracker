@@ -33,12 +33,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class VirtualRecordCardController {
+    /**
+     * Callback to refresh the parent student view after changes (e.g., delete).
+     */
+    private Runnable refreshCallback;
+
+    /**
+     * Set a callback to be run after student data changes (e.g., after delete).
+     */
+    /**
+     * Sets a callback to be run after student data changes (e.g., after delete).
+     * @param callback the callback to run
+     */
+    public void setRefreshCallback(Runnable callback) {
+        this.refreshCallback = callback;
+    }
     // --- Editable Notes and Follow-Up Section ---
     // Note model
     public static class Note {
         private final int id;
         private final javafx.beans.property.SimpleStringProperty text;
         private final String dateAdded;
+
         public Note(int id, String text, String dateAdded) {
             this.id = id;
             this.text = new javafx.beans.property.SimpleStringProperty(text);
@@ -58,6 +74,7 @@ public class VirtualRecordCardController {
         private final javafx.beans.property.SimpleStringProperty dueDate;
         private final javafx.beans.property.SimpleStringProperty description;
         private final javafx.beans.property.SimpleBooleanProperty completed;
+
         public FollowUp(int id, String dueDate, String description, boolean completed) {
             this.id = id;
             this.dueDate = new javafx.beans.property.SimpleStringProperty(dueDate);
@@ -77,6 +94,9 @@ public class VirtualRecordCardController {
     }
 
     // Editable cell for exam type columns
+    /**
+     * Editable cell for exam type columns, with color coding and edit restrictions.
+     */
     public static class EditableDoubleCell extends javafx.scene.control.TableCell<StudentModule, Double> {
         private final javafx.scene.control.TextField textField = new javafx.scene.control.TextField();
         private final String examType;
@@ -93,18 +113,10 @@ public class VirtualRecordCardController {
 
         @Override
         public void startEdit() {
-            StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+            StudentModule sm = getStudentModule();
             int passRate = (sm != null) ? sm.getPassRate() : 50;
-            boolean canEdit = true;
-            if ("summative".equals(examType)) {
-                canEdit = (sm != null && sm.getFormative() >= passRate);
-            } else if ("supplementary".equals(examType)) {
-                canEdit = (sm != null && sm.getFormative() >= passRate && sm.getSummative() < passRate);
-            }
-            if (!canEdit) {
-                // Don't allow editing
-                return;
-            }
+            boolean canEdit = canEditCell(sm, passRate);
+            if (!canEdit) return;
             super.startEdit();
             textField.setText(getItem() == null ? "" : getItem().toString());
             setGraphic(textField);
@@ -127,14 +139,9 @@ public class VirtualRecordCardController {
                 setGraphic(null);
                 setStyle("");
             } else {
-                StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+                StudentModule sm = getStudentModule();
                 int passRate = (sm != null) ? sm.getPassRate() : 50;
-                boolean canEdit = true;
-                if ("summative".equals(examType)) {
-                    canEdit = (sm != null && sm.getFormative() >= passRate);
-                } else if ("supplementary".equals(examType)) {
-                    canEdit = (sm != null && sm.getFormative() >= passRate && sm.getSummative() < passRate);
-                }
+                boolean canEdit = canEditCell(sm, passRate);
                 if (isEditing()) {
                     textField.setText(item == null ? "" : item.toString());
                     setGraphic(textField);
@@ -160,14 +167,9 @@ public class VirtualRecordCardController {
 
         @Override
         public void commitEdit(Double newValue) {
-            StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+            StudentModule sm = getStudentModule();
             int passRate = (sm != null) ? sm.getPassRate() : 50;
-            boolean canEdit = true;
-            if ("summative".equals(examType)) {
-                canEdit = (sm != null && sm.getFormative() >= passRate);
-            } else if ("supplementary".equals(examType)) {
-                canEdit = (sm != null && sm.getFormative() >= passRate && sm.getSummative() < passRate);
-            }
+            boolean canEdit = canEditCell(sm, passRate);
             if (!canEdit) {
                 cancelEdit();
                 return;
@@ -175,13 +177,31 @@ public class VirtualRecordCardController {
             super.commitEdit(newValue);
             if (sm == null) return;
             controller.saveExamResult(sm, examType, newValue);
-            if ("formative".equals(examType)) sm.setFormative(newValue);
-            else if ("summative".equals(examType)) sm.setSummative(newValue);
-            else if ("supplementary".equals(examType)) sm.setSupplementary(newValue);
+            switch (examType) {
+                case "formative": sm.setFormative(newValue); break;
+                case "summative": sm.setSummative(newValue); break;
+                case "supplementary": sm.setSupplementary(newValue); break;
+            }
         }
 
         private Double parseDouble(String s) {
             try { return Double.parseDouble(s); } catch (Exception e) { return null; }
+        }
+
+        private StudentModule getStudentModule() {
+            return getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+        }
+
+        private boolean canEditCell(StudentModule sm, int passRate) {
+            if (sm == null) return false;
+            switch (examType) {
+                case "summative":
+                    return sm.getFormative() >= passRate;
+                case "supplementary":
+                    return sm.getFormative() >= passRate && sm.getSummative() < passRate;
+                default:
+                    return true;
+            }
         }
 
         public static javafx.util.Callback<TableColumn<StudentModule, Double>, TableCell<StudentModule, Double>> forExamType(String examType, VirtualRecordCardController controller) {
@@ -210,6 +230,231 @@ public class VirtualRecordCardController {
     @FXML private Button handleDeleteStudent;
     @FXML private Button handleClose;
     @FXML private Button handleReregister; // Add this in your FXML
+
+    /**
+     * Handles closing the Virtual Record Card window.
+     */
+    @FXML
+    private void handleClose() {
+        // Try to close the window containing the close button
+        if (handleClose != null) {
+            javafx.scene.Scene scene = handleClose.getScene();
+            if (scene != null && scene.getWindow() != null) {
+                scene.getWindow().hide();
+            }
+        }
+    }
+
+    /**
+     * Handles deleting the selected student from the database and closes the window.
+     */
+    @FXML
+    private void handleDeleteStudent() {
+        if (selectedStudent == null) {
+            showError("No student selected", "Please select a student to delete.");
+            return;
+        }
+        // Confirm deletion
+        javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Student");
+        confirm.setHeaderText("Are you sure you want to delete this student?");
+        confirm.setContentText("This action cannot be undone.");
+        java.util.Optional<javafx.scene.control.ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != javafx.scene.control.ButtonType.OK) {
+            return;
+        }
+        // Delete all related data for the student, then the student record itself
+        String[] sqls = new String[] {
+            "DELETE FROM student_modules WHERE student_id = ?",
+            "DELETE FROM notes WHERE student_id = ?",
+            "DELETE FROM follow_ups WHERE student_id = ?",
+            // Add more related tables here if needed
+            "DELETE FROM students WHERE student_id = ?"
+        };
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            for (String sql : sqls) {
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setInt(1, selectedStudent.getId());
+                    stmt.executeUpdate();
+                }
+            }
+            conn.commit();
+        } catch (SQLException e) {
+            logger.error("Error deleting student and related data", e);
+            showError("Error deleting student", e.getMessage());
+            return;
+        }
+        // Close the window
+        handleClose();
+        // Notify parent to refresh student list
+        if (refreshCallback != null) {
+            refreshCallback.run();
+        }
+    }
+    /**
+     * Handles editing the selected student's details.
+     */
+    @FXML
+    private void handleEditStudent() {
+        if (selectedStudent == null) {
+            showError("No student selected", "Please select a student to edit.");
+            return;
+        }
+        // Create dialog fields pre-filled with current values
+        javafx.scene.control.TextField firstNameField = new javafx.scene.control.TextField(selectedStudent.getFirstName());
+        javafx.scene.control.TextField lastNameField = new javafx.scene.control.TextField(selectedStudent.getLastName());
+        javafx.scene.control.TextField emailField = new javafx.scene.control.TextField(selectedStudent.getEmail());
+        javafx.scene.control.TextField phoneField = new javafx.scene.control.TextField(selectedStudent.getPhoneNumber());
+        // ComboBox for SLP
+        javafx.scene.control.ComboBox<String> slpCombo = new javafx.scene.control.ComboBox<>();
+        javafx.collections.ObservableList<String> slpOptions = FXCollections.observableArrayList();
+        int currentSlpIndex = 0;
+        String currentSlp = selectedStudent.getSlp();
+        // Load SLPs from DB
+        String slpSql = "SELECT name FROM slps ORDER BY name";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(slpSql);
+             ResultSet rs = stmt.executeQuery()) {
+            int idx = 0;
+            while (rs.next()) {
+                String slpName = rs.getString("name");
+                slpOptions.add(slpName);
+                if (slpName.equals(currentSlp)) currentSlpIndex = idx;
+                idx++;
+            }
+        } catch (SQLException e) {
+            logger.error("Error loading SLPs", e);
+        }
+        slpCombo.setItems(slpOptions);
+        slpCombo.getSelectionModel().select(currentSlpIndex);
+
+        // ComboBox for Status
+        javafx.scene.control.ComboBox<String> statusCombo = new javafx.scene.control.ComboBox<>();
+        javafx.collections.ObservableList<String> statusOptions = FXCollections.observableArrayList("Active", "On Hold", "Graduated");
+        statusCombo.setItems(statusOptions);
+        statusCombo.getSelectionModel().select(selectedStudent.getStatus());
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.add(new javafx.scene.control.Label("First Name:"), 0, 0);
+        grid.add(firstNameField, 1, 0);
+        grid.add(new javafx.scene.control.Label("Last Name:"), 0, 1);
+        grid.add(lastNameField, 1, 1);
+        grid.add(new javafx.scene.control.Label("Email:"), 0, 2);
+        grid.add(emailField, 1, 2);
+        grid.add(new javafx.scene.control.Label("Phone:"), 0, 3);
+        grid.add(phoneField, 1, 3);
+        grid.add(new javafx.scene.control.Label("SLP:"), 0, 4);
+        grid.add(slpCombo, 1, 4);
+        grid.add(new javafx.scene.control.Label("Status:"), 0, 5);
+        grid.add(statusCombo, 1, 5);
+
+        javafx.scene.control.Dialog<java.util.List<String>> dialog = new javafx.scene.control.Dialog<>();
+        dialog.setTitle("Edit Student");
+        dialog.setHeaderText("Edit student details");
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(javafx.scene.control.ButtonType.OK, javafx.scene.control.ButtonType.CANCEL);
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == javafx.scene.control.ButtonType.OK) {
+                return java.util.Arrays.asList(
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    emailField.getText(),
+                    phoneField.getText(),
+                    slpCombo.getSelectionModel().getSelectedItem(),
+                    statusCombo.getSelectionModel().getSelectedItem()
+                );
+            }
+            return null;
+        });
+        java.util.Optional<java.util.List<String>> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            java.util.List<String> values = result.get();
+            String oldSlp = selectedStudent.getSlp();
+            String newSlp = values.get(4);
+            // Fix: update students table to use correct column names (phone -> phone, SLP -> current_slp_id)
+            String getSlpIdSql = "SELECT slp_id FROM slps WHERE name = ?";
+            int newSlpId = -1;
+            try (Connection conn = DBUtil.getConnection()) {
+                // Get new SLP id
+                try (PreparedStatement getSlpIdStmt = conn.prepareStatement(getSlpIdSql)) {
+                    getSlpIdStmt.setString(1, values.get(4));
+                    try (ResultSet rs = getSlpIdStmt.executeQuery()) {
+                        if (rs.next()) newSlpId = rs.getInt("slp_id");
+                    }
+                }
+                if (newSlpId == -1) {
+                    showError("Error updating student", "SLP not found in database.");
+                    return;
+                }
+                String sql = "UPDATE students SET first_name = ?, last_name = ?, email = ?, phone = ?, current_slp_id = ?, status = ? WHERE student_id = ?";
+                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    stmt.setString(1, values.get(0));
+                    stmt.setString(2, values.get(1));
+                    stmt.setString(3, values.get(2));
+                    stmt.setString(4, values.get(3));
+                    stmt.setInt(5, newSlpId);
+                    stmt.setString(6, values.get(5));
+                    stmt.setInt(7, selectedStudent.getId());
+                    stmt.executeUpdate();
+                }
+                // Update local object using property setters
+                selectedStudent.firstNameProperty().set(values.get(0));
+                selectedStudent.lastNameProperty().set(values.get(1));
+                selectedStudent.emailProperty().set(values.get(2));
+                selectedStudent.phoneNumberProperty().set(values.get(3));
+                selectedStudent.slpProperty().set(values.get(4));
+                selectedStudent.statusProperty().set(values.get(5));
+                loadStudentDetails();
+
+                // If SLP changed, unlink old modules and link new ones, and add automated note
+                if (!oldSlp.equals(values.get(4))) {
+                    // 1. Unlink all modules for this student
+                    String unlinkSql = "DELETE FROM student_modules WHERE student_id = ?";
+                    try (PreparedStatement unlinkStmt = conn.prepareStatement(unlinkSql)) {
+                        unlinkStmt.setInt(1, selectedStudent.getId());
+                        unlinkStmt.executeUpdate();
+                    }
+                    // 2. Link new modules for the new SLP
+                    String getModulesSql = "SELECT m.module_id, m.module_code, m.name FROM modules m JOIN slp_modules sm ON m.module_id = sm.module_id WHERE sm.slp_id = ?";
+                    try (PreparedStatement getModulesStmt = conn.prepareStatement(getModulesSql)) {
+                        getModulesStmt.setInt(1, newSlpId);
+                        try (ResultSet rs = getModulesStmt.executeQuery()) {
+                            while (rs.next()) {
+                                int moduleId = rs.getInt("module_id");
+                                String moduleCode = rs.getString("module_code");
+                                String moduleName = rs.getString("name");
+                                String insertModuleSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, received_book) VALUES (?, ?, ?, ?, 0)";
+                                try (PreparedStatement insertModuleStmt = conn.prepareStatement(insertModuleSql)) {
+                                    insertModuleStmt.setInt(1, selectedStudent.getId());
+                                    insertModuleStmt.setInt(2, moduleId);
+                                    insertModuleStmt.setString(3, moduleCode);
+                                    insertModuleStmt.setString(4, moduleName);
+                                    insertModuleStmt.executeUpdate();
+                                }
+                            }
+                        }
+                    }
+                    // 3. Add automated note
+                    String noteSql = "INSERT INTO notes (student_id, note_text, date_added) VALUES (?, ?, date('now'))";
+                    try (PreparedStatement noteStmt = conn.prepareStatement(noteSql)) {
+                        noteStmt.setInt(1, selectedStudent.getId());
+                        noteStmt.setString(2, "SLP changed from '" + oldSlp + "' to '" + values.get(4) + "'. Modules relinked.");
+                        noteStmt.executeUpdate();
+                    }
+                    // 4. Reload modules and notes
+                    loadStudentModules();
+                    loadNotes();
+                }
+            } catch (SQLException e) {
+                logger.error("Error updating student", e);
+                showError("Error updating student", e.getMessage());
+            }
+        }
+    }
+
     /**
      * Handles reregistration for a student: removes (or marks) the old module and adds the new one with a reregistration tag.
      * @param oldModule The StudentModule to be replaced.
@@ -426,9 +671,10 @@ public class VirtualRecordCardController {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, selectedStudent.getId());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                notes.add(new Note(rs.getInt("note_id"), rs.getString("note_text"), rs.getString("date_added")));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    notes.add(new Note(rs.getInt("note_id"), rs.getString("note_text"), rs.getString("date_added")));
+                }
             }
         } catch (SQLException e) {
             logger.error("Error loading notes", e);
@@ -458,8 +704,9 @@ public class VirtualRecordCardController {
         } catch (SQLException e) {
             logger.error("Error adding note", e);
             showError("Error adding note", e.getMessage());
+        } finally {
+            noteInputField.clear();
         }
-        noteInputField.clear();
     }
 
     // Add follow-up from UI using in-place fields
@@ -484,13 +731,15 @@ public class VirtualRecordCardController {
             }
         } catch (SQLException e) {
             logger.error("Error adding follow-up", e);
+        } finally {
+            followUpDueDateField.setValue(null);
+            followUpDescField.clear();
         }
-        followUpDueDateField.setValue(null);
-        followUpDescField.clear();
     }
 
     // Update note in DB
     private void updateNoteInDB(Note note) {
+        if (note == null) return;
         String sql = "UPDATE notes SET note_text = ? WHERE note_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -504,6 +753,7 @@ public class VirtualRecordCardController {
 
     // Update follow-up in DB
     private void updateFollowUpInDB(FollowUp fu) {
+        if (fu == null) return;
         String sql = "UPDATE follow_ups SET due_date = ?, description = ?, completed = ? WHERE followup_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -706,18 +956,20 @@ public class VirtualRecordCardController {
      * @param examType The type of exam ("formative", "summative", "supplementary").
      * @param value The new value to save.
      */
+    /**
+     * Saves the exam result for a given student module and exam type to the database.
+     * @param sm The StudentModule object.
+     * @param examType The type of exam ("formative", "summative", "supplementary").
+     * @param value The new value to save.
+     */
     public void saveExamResult(StudentModule sm, String examType, Double value) {
         if (sm == null || examType == null || value == null) return;
         String column;
         switch (examType) {
             case "formative":
-                column = "formative";
-                break;
             case "summative":
-                column = "summative";
-                break;
             case "supplementary":
-                column = "supplementary";
+                column = examType;
                 break;
             default:
                 return;
