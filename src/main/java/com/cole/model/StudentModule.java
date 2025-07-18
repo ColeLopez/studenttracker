@@ -12,15 +12,14 @@ public class StudentModule {
     private Double supplementary;
 
     public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName, String examType, boolean receivedBook) {
-        this(studentId, moduleId, moduleCode, moduleName, examType, receivedBook, null, null, null);
+        this(studentId, moduleId, moduleCode, moduleName, receivedBook, null, null, null);
     }
 
-    public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName, String examType, boolean receivedBook, Double formative, Double summative, Double supplementary) {
+    public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName, boolean receivedBook, Double formative, Double summative, Double supplementary) {
         this.studentId = studentId;
         this.moduleId = moduleId;
         this.moduleCode = moduleCode;
         this.moduleName = moduleName;
-        this.examType = examType;
         this.receivedBook = receivedBook;
         this.formative = formative;
         this.summative = summative;
