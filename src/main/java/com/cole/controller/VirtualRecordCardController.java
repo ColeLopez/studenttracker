@@ -90,20 +90,35 @@ public class VirtualRecordCardController {
                 if (!isNowFocused) commitEdit(parseDouble(textField.getText()));
             });
         }
+
         @Override
         public void startEdit() {
+            StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+            int passRate = (sm != null) ? sm.getPassRate() : 50;
+            boolean canEdit = true;
+            if ("summative".equals(examType)) {
+                canEdit = (sm != null && sm.getFormative() >= passRate);
+            } else if ("supplementary".equals(examType)) {
+                canEdit = (sm != null && sm.getFormative() >= passRate && sm.getSummative() < passRate);
+            }
+            if (!canEdit) {
+                // Don't allow editing
+                return;
+            }
             super.startEdit();
             textField.setText(getItem() == null ? "" : getItem().toString());
             setGraphic(textField);
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             textField.requestFocus();
         }
+
         @Override
         public void cancelEdit() {
             super.cancelEdit();
             setText(getItem() == null ? "" : getItem().toString());
             setContentDisplay(ContentDisplay.TEXT_ONLY);
         }
+
         @Override
         public void updateItem(Double item, boolean empty) {
             super.updateItem(item, empty);
@@ -111,13 +126,24 @@ public class VirtualRecordCardController {
                 setText(null);
                 setGraphic(null);
                 setStyle("");
-            } else if (isEditing()) {
-                textField.setText(item == null ? "" : item.toString());
-                setGraphic(textField);
-                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                // Color code while editing
+            } else {
                 StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
                 int passRate = (sm != null) ? sm.getPassRate() : 50;
+                boolean canEdit = true;
+                if ("summative".equals(examType)) {
+                    canEdit = (sm != null && sm.getFormative() >= passRate);
+                } else if ("supplementary".equals(examType)) {
+                    canEdit = (sm != null && sm.getFormative() >= passRate && sm.getSummative() < passRate);
+                }
+                if (isEditing()) {
+                    textField.setText(item == null ? "" : item.toString());
+                    setGraphic(textField);
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                } else {
+                    setText(item == null ? "" : item.toString());
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
+                }
+                // Color code
                 if (item != null && item >= passRate) {
                     setStyle("-fx-background-color: #c8e6c9;");
                 } else if (item != null) {
@@ -125,33 +151,39 @@ public class VirtualRecordCardController {
                 } else {
                     setStyle("");
                 }
-            } else {
-                setText(item == null ? "" : item.toString());
-                setContentDisplay(ContentDisplay.TEXT_ONLY);
-                // Color code when not editing
-                StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
-                int passRate = (sm != null) ? sm.getPassRate() : 50;
-                if (item != null && item >= passRate) {
-                    setStyle("-fx-background-color: #c8e6c9;");
-                } else if (item != null) {
-                    setStyle("-fx-background-color: #ffcdd2;");
-                } else {
-                    setStyle("");
+                // Disable cell visually if not editable
+                if (!canEdit && ("summative".equals(examType) || "supplementary".equals(examType))) {
+                    setStyle(getStyle() + ";-fx-opacity: 0.5;");
                 }
             }
         }
+
         @Override
         public void commitEdit(Double newValue) {
+            StudentModule sm = getTableRow() != null ? (StudentModule) getTableRow().getItem() : null;
+            int passRate = (sm != null) ? sm.getPassRate() : 50;
+            boolean canEdit = true;
+            if ("summative".equals(examType)) {
+                canEdit = (sm != null && sm.getFormative() >= passRate);
+            } else if ("supplementary".equals(examType)) {
+                canEdit = (sm != null && sm.getFormative() >= passRate && sm.getSummative() < passRate);
+            }
+            if (!canEdit) {
+                cancelEdit();
+                return;
+            }
             super.commitEdit(newValue);
-            StudentModule sm = getTableView().getItems().get(getIndex());
+            if (sm == null) return;
             controller.saveExamResult(sm, examType, newValue);
             if ("formative".equals(examType)) sm.setFormative(newValue);
             else if ("summative".equals(examType)) sm.setSummative(newValue);
             else if ("supplementary".equals(examType)) sm.setSupplementary(newValue);
         }
+
         private Double parseDouble(String s) {
             try { return Double.parseDouble(s); } catch (Exception e) { return null; }
         }
+
         public static javafx.util.Callback<TableColumn<StudentModule, Double>, TableCell<StudentModule, Double>> forExamType(String examType, VirtualRecordCardController controller) {
             return col -> new EditableDoubleCell(examType, controller);
         }
@@ -173,11 +205,156 @@ public class VirtualRecordCardController {
     @FXML private TableColumn<FollowUp, Boolean> completedColumn;
 
     // FXML fields for buttons and labels
-    @FXML private Button handleAddModule;
     @FXML private Button handleAddFollowUp;
     @FXML private Button handleEditStudent;
     @FXML private Button handleDeleteStudent;
     @FXML private Button handleClose;
+    @FXML private Button handleReregister; // Add this in your FXML
+    /**
+     * Handles reregistration for a student: removes (or marks) the old module and adds the new one with a reregistration tag.
+     * @param oldModule The StudentModule to be replaced.
+     * @param newModuleId The module_id of the new module to register.
+     */
+    public void handleReregistration(StudentModule oldModule, int newModuleId) {
+        if (selectedStudent == null || oldModule == null) {
+            showError("No student/module selected", "Please select a student and module to reregister.");
+            return;
+        }
+        // 1. Mark old module as replaced (for audit/history)
+        String markOldSql = "UPDATE student_modules SET status = 'replaced' WHERE student_id = ? AND module_id = ?";
+        // 2. Fetch module_code and module_name for the new module
+        String fetchModuleSql = "SELECT module_code, name FROM modules WHERE module_id = ?";
+        // 3. Add new module with reregistration tag, including code and name
+        String addNewSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, registration_type, received_book, formative, summative, supplementary) VALUES (?, ?, ?, ?, 'reregistration', 0, NULL, NULL, NULL)";
+        // 4. Insert automated note
+        String addNoteSql = "INSERT INTO notes (student_id, note_text, date_added) VALUES (?, ?, date('now'))";
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try (
+                PreparedStatement markStmt = conn.prepareStatement(markOldSql);
+                PreparedStatement fetchStmt = conn.prepareStatement(fetchModuleSql);
+                PreparedStatement addStmt = conn.prepareStatement(addNewSql);
+                PreparedStatement noteStmt = conn.prepareStatement(addNoteSql)
+            ) {
+                // Mark old module as replaced
+                markStmt.setInt(1, selectedStudent.getId());
+                markStmt.setInt(2, oldModule.getModuleId());
+                markStmt.executeUpdate();
+
+                // Fetch module_code and name
+                fetchStmt.setInt(1, newModuleId);
+                String moduleCode = null;
+                String moduleName = null;
+                try (ResultSet rs = fetchStmt.executeQuery()) {
+                    if (rs.next()) {
+                        moduleCode = rs.getString("module_code");
+                        moduleName = rs.getString("name");
+                    }
+                }
+                if (moduleCode == null || moduleName == null) {
+                    conn.rollback();
+                    showError("Reregistration Error", "Module details not found.");
+                    return;
+                }
+
+                // Add new module as reregistration
+                addStmt.setInt(1, selectedStudent.getId());
+                addStmt.setInt(2, newModuleId);
+                addStmt.setString(3, moduleCode);
+                addStmt.setString(4, moduleName);
+                addStmt.executeUpdate();
+
+                // Add automated note
+                String noteText = "Module reregistered: replaced '" + oldModule.getModuleCode() + " - " + oldModule.getModuleName() + "' with '" + moduleCode + " - " + moduleName + "'.";
+                noteStmt.setInt(1, selectedStudent.getId());
+                noteStmt.setString(2, noteText);
+                noteStmt.executeUpdate();
+
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                logger.error("Error during reregistration", e);
+                showError("Reregistration Error", e.getMessage());
+                return;
+            }
+        } catch (SQLException e) {
+            logger.error("Error during reregistration (connection)", e);
+            showError("Reregistration Error", e.getMessage());
+            return;
+        }
+        // Reload modules and notes to update UI
+        loadStudentModules();
+        loadNotes();
+    }
+
+    /**
+     * FXML handler for reregistration button. You should wire this up in your FXML.
+     * This is a stub: you need to implement module selection dialog.
+     */
+    @FXML
+    private void handleReregisterButton() {
+        // Get selected module from table
+        StudentModule oldModule = moduleTable.getSelectionModel().getSelectedItem();
+        if (oldModule == null) {
+            showError("No module selected", "Please select a module to reregister.");
+            return;
+        }
+        // Only show modules for the student's SLP, with the same module code as the failed module, not already registered
+        ObservableList<ModuleOption> availableModules = FXCollections.observableArrayList();
+        String sql = "SELECT m.module_id, m.module_code, m.name FROM modules m " +
+                "JOIN slp_modules sm ON m.module_id = sm.module_id " +
+                "JOIN slps s ON sm.slp_id = s.slp_id " +
+                "JOIN students st ON st.student_id = ? " +
+                "WHERE sm.slp_id = st.current_slp_id AND m.module_code = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, selectedStudent.getId());
+            stmt.setString(2, oldModule.getModuleCode());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                availableModules.add(new ModuleOption(
+                    rs.getInt("module_id"),
+                    rs.getString("module_code"),
+                    rs.getString("name")
+                ));
+            }
+        } catch (SQLException e) {
+            logger.error("Error loading available modules for reregistration", e);
+            showError("Error", "Could not load available modules.");
+            return;
+        }
+        if (availableModules.isEmpty()) {
+            showError("No Modules", "No available modules for reregistration for this SLP and module code.");
+            return;
+        }
+        // Show ChoiceDialog for module selection
+        javafx.scene.control.ChoiceDialog<ModuleOption> dialog = new javafx.scene.control.ChoiceDialog<>(availableModules.get(0), availableModules);
+        dialog.setTitle("Select Module for Reregistration");
+        dialog.setHeaderText("Select a module to reregister for this student.");
+        dialog.setContentText("Module:");
+        java.util.Optional<ModuleOption> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            int newModuleId = result.get().getModuleId();
+            handleReregistration(oldModule, newModuleId);
+        }
+    }
+
+    // Helper class for module selection dialog
+    private static class ModuleOption {
+        private final int moduleId;
+        private final String moduleCode;
+        private final String moduleName;
+        public ModuleOption(int moduleId, String moduleCode, String moduleName) {
+            this.moduleId = moduleId;
+            this.moduleCode = moduleCode;
+            this.moduleName = moduleName;
+        }
+        public int getModuleId() { return moduleId; }
+        @Override
+        public String toString() {
+            return moduleCode + " - " + moduleName;
+        }
+    }
 
     @FXML private ListView<Note> noteList;
     @FXML private TextField noteInputField;
@@ -364,7 +541,7 @@ public class VirtualRecordCardController {
         studentModules.clear();
         if (selectedStudent == null) return;
         logger.info("Loading modules for student_id: {}", selectedStudent.getId());
-        String sql = "SELECT sm.*, m.pass_rate FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id WHERE sm.student_id = ?";
+        String sql = "SELECT sm.*, m.pass_rate FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id WHERE sm.student_id = ? AND (sm.status IS NULL OR sm.status != 'replaced')";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, selectedStudent.getId());
