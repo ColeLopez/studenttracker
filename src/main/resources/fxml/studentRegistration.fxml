@@ -47,8 +47,6 @@
                   <Label text="First Name:" GridPane.rowIndex="1" />
                   <TextField fx:id="firstNameField" promptText="Enter First Name" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <Label text="Last Name:" GridPane.rowIndex="2" />
-                  <TextField fx:id="lastNameField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Label text="Last Name:" GridPane.rowIndex="2" />
                   <TextField fx:id="lastNameField" promptText="Enter Last Name" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   <Label text="Email:" GridPane.rowIndex="3" />
                   <TextField fx:id="emailField" promptText="Enter Email Address" GridPane.columnIndex="1" GridPane.rowIndex="3" />
