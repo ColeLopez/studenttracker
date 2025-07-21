@@ -122,9 +122,12 @@ public class StudentViewController {
             Parent root = loader.load();
             VirtualRecordCardController controller = loader.getController();
             controller.setStudent(student);
+            // Set callback to refresh student list after changes (e.g., delete)
+            controller.setRefreshCallback(() -> loadStudents());
             Stage stage = new Stage();
             stage.setTitle("Virtual Record Card - " + student.getFirstName() + " " + student.getLastName());
             stage.setScene(new Scene(root));
+            stage.centerOnScreen(); // <-- Ensure this line is present
             stage.show();
         } catch (Exception e) {
             logger.error("Failed to open Virtual Record Card", e);
