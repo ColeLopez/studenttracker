@@ -144,4 +144,40 @@ public class DashboardController {
     private void handleViewStudents(ActionEvent event) {
         setCenterContent("/fxml/studentView.fxml");
     }
+
+    /**
+     * Handles the action to manage follow-ups when the user clicks the corresponding button.
+     * Switches the center content to the Follow-Up management view.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleManageFollowUps(ActionEvent event) {
+        setCenterContent("/fxml/followUps.fxml");
+    }
+
+    /**
+     * Handles the action to manage student follow-ups when the user clicks the corresponding button.
+     * Switches the center content to the Student Follow-Up management view.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleEmailSettings(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/emailSettings.fxml"));
+            Parent root = loader.load();
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Email Settings");
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(Stage.getWindows().stream()
+                .filter(javafx.stage.Window::isShowing)
+                .findFirst()
+                .orElse(null));
+            popupStage.centerOnScreen();
+            popupStage.showAndWait();
+        } catch (IOException e) {
+            logger.error("Failed to load Email Settings FXML", e);
+            showError("Error", "Could not open Email Settings.");
+        }
+    }
 }
