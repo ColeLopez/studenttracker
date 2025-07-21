@@ -26,6 +26,7 @@ public class App extends Application {
             stage.setTitle("Student Tracker - Login");
             stage.setScene(scene);
             stage.setResizable(false);
+            stage.centerOnScreen(); // <-- Add this line to center the window
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
