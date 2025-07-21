@@ -100,6 +100,7 @@ public class LoginController {
                     Stage stage = (Stage) usernameField.getScene().getWindow();
                     stage.setScene(new Scene(root));
                     stage.setTitle("Dashboard");
+                    stage.centerOnScreen(); // <-- Add this line
                 } catch (IOException ex) {
                     logger.error("Failed to load dashboard.fxml", ex);
                     showAlert(Alert.AlertType.ERROR, "Navigation Error", "Could not load dashboard.");
