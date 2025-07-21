@@ -643,12 +643,15 @@ public class VirtualRecordCardController {
             stmt.setInt(1, selectedStudent.getId());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                followUps.add(new FollowUp(
+                FollowUp fu = new FollowUp(
                     rs.getInt("followup_id"),
                     rs.getString("due_date"),
                     rs.getString("description"),
                     rs.getInt("completed") == 1
-                ));
+                );
+                // Add listener to update DB when completed checkbox is clicked
+                fu.completedProperty().addListener((obs, oldVal, newVal) -> updateFollowUpInDB(fu));
+                followUps.add(fu);
             }
         } catch (SQLException e) {
             logger.error("Error loading follow-ups", e);
