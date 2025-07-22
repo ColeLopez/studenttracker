@@ -180,4 +180,14 @@ public class DashboardController {
             showError("Error", "Could not open Email Settings.");
         }
     }
+
+    /**
+     * Handles the action to manage graduates when the user clicks the corresponding button.
+     * Switches the center content to the Graduates management view.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleManageGraduates(ActionEvent event) {
+        setCenterContent("/fxml/graduates.fxml");
+    }
 }
