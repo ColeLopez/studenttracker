@@ -1,0 +1,97 @@
+package com.cole.Service;
+
+import java.sql.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
+import com.cole.util.DBUtil;
+
+public class GraduationService {
+
+    private static final Logger logger = Logger.getLogger(GraduationService.class.getName());
+
+    public void checkAndUpdateGraduationFlags() {
+        try (Connection conn = DBUtil.getConnection()) {
+            logger.info("Starting graduation flag check...");
+            String studentQuery = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, slp.name AS slp_course " +
+                                  "FROM students s JOIN slps slp ON s.current_slp_id = slp.slp_id";
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(studentQuery)) {
+                while (rs.next()) {
+                    int studentId = rs.getInt("student_id");
+                    String slpCourse = rs.getString("slp_course");
+                    if (hasPassedAllModules(conn, studentId)) {
+                        logger.info("Student " + studentId + " passed all modules. Flagging for graduation.");
+                        flagStudent(conn, rs, slpCourse);
+                    } else {
+                        logger.info("Student " + studentId + " has not passed all modules. Removing graduation flag if exists.");
+                        unflagStudent(conn, studentId);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error checking/updating graduation flags", e);
+        }
+    }
+
+    private boolean hasPassedAllModules(Connection conn, int studentId) throws SQLException {
+        String query = "SELECT sm.formative, sm.summative, sm.supplementary, m.pass_rate " +
+                       "FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id " +
+                       "WHERE sm.student_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int passRate = rs.getInt("pass_rate");
+                    int formative = parseIntSafe(rs.getString("formative"));
+                    int summative = parseIntSafe(rs.getString("summative"));
+                    int supplementary = parseIntSafe(rs.getString("supplementary"));
+                    if (formative < passRate) return false;
+                    if (summative < passRate && supplementary < passRate) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private int parseIntSafe(String value) {
+        try { return Integer.parseInt(value); } catch (Exception e) { return 0; }
+    }
+
+    private void flagStudent(Connection conn, ResultSet rs, String slpCourse) throws SQLException {
+        int studentId = rs.getInt("student_id");
+        String checkQuery = "SELECT 1 FROM students_to_graduate WHERE student_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(checkQuery)) {
+            ps.setInt(1, studentId);
+            try (ResultSet checkRs = ps.executeQuery()) {
+                if (checkRs.next()) {
+                    logger.info("Student " + studentId + " already flagged for graduation.");
+                    return;
+                }
+            }
+        }
+        String insertQuery = "INSERT INTO students_to_graduate (student_id, student_number, first_name, last_name, slp_course, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(insertQuery)) {
+            ps.setInt(1, studentId);
+            ps.setString(2, rs.getString("student_number"));
+            ps.setString(3, rs.getString("first_name"));
+            ps.setString(4, rs.getString("last_name"));
+            ps.setString(5, slpCourse);
+            ps.setString(6, rs.getString("email"));
+            ps.setString(7, rs.getString("phone"));
+            ps.executeUpdate();
+            logger.info("Student " + studentId + " flagged for graduation.");
+        }
+    }
+
+    private void unflagStudent(Connection conn, int studentId) throws SQLException {
+        String deleteQuery = "DELETE FROM students_to_graduate WHERE student_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(deleteQuery)) {
+            ps.setInt(1, studentId);
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                logger.info("Student " + studentId + " unflagged for graduation.");
+            }
+        }
+    }
+}
