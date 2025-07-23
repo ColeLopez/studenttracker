@@ -4,6 +4,7 @@ import java.sql.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import com.cole.model.StudentToGraduate;
 import com.cole.util.DBUtil;
 
 public class GraduationService {
@@ -12,9 +13,9 @@ public class GraduationService {
 
     public void checkAndUpdateGraduationFlags() {
         try (Connection conn = DBUtil.getConnection()) {
-            logger.info("Starting graduation flag check...");
             String studentQuery = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, slp.name AS slp_course " +
                                   "FROM students s JOIN slps slp ON s.current_slp_id = slp.slp_id";
+            // NOTE: Ensure 'slps' is the correct table name in your database schema. If not, replace 'slps' with the correct table name.
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(studentQuery)) {
                 while (rs.next()) {
@@ -35,29 +36,49 @@ public class GraduationService {
     }
 
     private boolean hasPassedAllModules(Connection conn, int studentId) throws SQLException {
-        String query = "SELECT sm.formative, sm.summative, sm.supplementary, m.pass_rate " +
+       String query = "SELECT sm.module_id, m.name AS module_name, sm.formative, sm.summative, sm.supplementary, m.pass_rate " +
                        "FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id " +
                        "WHERE sm.student_id = ?";
+        boolean hasModules = false;
+        boolean allPassed = true;
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, studentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    hasModules = true;
+                    String moduleName = rs.getString("module_name");
                     int passRate = rs.getInt("pass_rate");
-                    int formative = parseIntSafe(rs.getString("formative"));
-                    int summative = parseIntSafe(rs.getString("summative"));
-                    int supplementary = parseIntSafe(rs.getString("supplementary"));
-                    if (formative < passRate) return false;
-                    if (summative < passRate && supplementary < passRate) return false;
+                    int formative = rs.getInt("formative");
+                    int summative = rs.getInt("summative");
+                    int supplementary = rs.getInt("supplementary");
+
+                    boolean formativePassed = formative >= passRate;
+                    boolean summativePassed = summative >= passRate;
+                    boolean supplementaryPassed = supplementary >= passRate;
+
+                    if (!formativePassed) {
+                        logger.info("Student " + studentId + " did NOT pass formative for module: " + moduleName +
+                                    " (Score: " + formative + ", Pass Rate: " + passRate + ")");
+                        allPassed = false;
+                    } else if (!summativePassed && !supplementaryPassed) {
+                        logger.info("Student " + studentId + " did NOT pass summative or supplementary for module: " + moduleName +
+                                    " (Summative: " + summative + ", Supplementary: " + supplementary + ", Pass Rate: " + passRate + ")");
+                        allPassed = false;
+                    } else {
+                        logger.info("Student " + studentId + " PASSED module: " + moduleName +
+                                    " (Formative: " + formative + ", Summative: " + summative + ", Supplementary: " + supplementary + ", Pass Rate: " + passRate + ")");
+                    }
                 }
             }
         }
-        return true;
+        if (!hasModules) {
+            logger.info("Student " + studentId + " is not enrolled in any modules.");
+            return false;
+        }
+        return allPassed;
+    // Removed unused parseIntSafe method
+    // Removed unused parseIntSafe method
     }
-
-    private int parseIntSafe(String value) {
-        try { return Integer.parseInt(value); } catch (Exception e) { return 0; }
-    }
-
     private void flagStudent(Connection conn, ResultSet rs, String slpCourse) throws SQLException {
         int studentId = rs.getInt("student_id");
         String checkQuery = "SELECT 1 FROM students_to_graduate WHERE student_id = ?";
