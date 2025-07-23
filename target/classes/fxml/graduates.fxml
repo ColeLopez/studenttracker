@@ -10,7 +10,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.GraduatesController">
    <children>
       <VBox alignment="CENTER" layoutX="250.0" layoutY="100.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -29,20 +28,20 @@
             </HBox>
             <HBox alignment="CENTER_RIGHT" prefHeight="53.0" prefWidth="600.0" spacing="10.0">
                <children>
-                  <Button mnemonicParsing="false" text="Bulk Transcript Request" />
+                  <Button fx:id="bukRequestButton" mnemonicParsing="false" text="Bulk Transcript Request" />
                </children>
                <padding>
                   <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                </padding>
             </HBox>
-            <TableView prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+            <TableView fx:id="graduationTable" editable="true" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
               <columns>
-                <TableColumn editable="false" prefWidth="75.0" text="Student Number" />
-                <TableColumn editable="false" prefWidth="75.0" text="Student Name" />
-                  <TableColumn editable="false" prefWidth="75.0" text="SLP Course" />
-                  <TableColumn editable="false" prefWidth="75.0" text="Email" />
-                  <TableColumn editable="false" prefWidth="75.0" text="Phone" />
-                  <TableColumn prefWidth="75.0" text="Transcript Requested" />
+                <TableColumn fx:id="numberColumn" text="Student Number" />
+                <TableColumn fx:id="nameColumn" text="Student Name" />
+                  <TableColumn fx:id="slpColumn" text="SLP Course" />
+                  <TableColumn fx:id="emailColumn" text="Email" />
+                  <TableColumn fx:id="phoneColumn" text="Phone" />
+                  <TableColumn fx:id="transcriptColumn" text="Transcript Requested" />
               </columns>
                <columnResizePolicy>
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
