@@ -43,17 +43,103 @@ public final class DBInit {
      */
     public static void initializeDatabase() {
         String[] schemaStatements = {
-                // Split the schema into Java-executable SQL commands
-                "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, salt TEXT NOT NULL);",
-                "CREATE TABLE IF NOT EXISTS students (student_id INTEGER PRIMARY KEY AUTOINCREMENT, student_number TEXT UNIQUE NOT NULL, first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT, phone TEXT, enrollment_date TEXT, current_slp_id INTEGER, status TEXT, FOREIGN KEY (current_slp_id) REFERENCES slps(slp_id));",
-                "CREATE TABLE IF NOT EXISTS slps (slp_id INTEGER PRIMARY KEY AUTOINCREMENT, slp_code TEXT NOT NULL, name TEXT, description TEXT);",
-                "CREATE TABLE IF NOT EXISTS modules (module_id INTEGER PRIMARY KEY AUTOINCREMENT, module_code TEXT NOT NULL UNIQUE, name TEXT, pass_rate INTEGER NOT NULL);",
-                "CREATE TABLE IF NOT EXISTS slp_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, slp_id INTEGER NOT NULL, module_id INTEGER NOT NULL, FOREIGN KEY (slp_id) REFERENCES slps(slp_id), FOREIGN KEY (module_id) REFERENCES modules(module_id));",
-                // New junction table to track if a student has received a book for a module
-                "CREATE TABLE IF NOT EXISTS student_modules (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL, module_id INTEGER NOT NULL, module_code TEXT, module_name TEXT, formative TEXT, summative TEXT, supplementary TEXT, status TEXT, received_book INTEGER DEFAULT 0, registration_type TEXT, FOREIGN KEY (student_id) REFERENCES students(student_id), FOREIGN KEY (module_id) REFERENCES modules(module_id));",
-                "CREATE TABLE IF NOT EXISTS notes (note_id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL, note_text TEXT, date_added TEXT, FOREIGN KEY (student_id) REFERENCES students(student_id));",
-                "CREATE TABLE IF NOT EXISTS follow_ups (followup_id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL, due_date TEXT NOT NULL, description TEXT, completed INTEGER DEFAULT 0, FOREIGN KEY (student_id) REFERENCES students(student_id));",
-                "CREATE TABLE IF NOT EXISTS students_to_graduate (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER NOT NULL, student_number TEXT NOT NULL, first_name TEXT NOT NULL, last_name TEXT NOT NULL, slp_course TEXT NOT NULL, email TEXT, phone TEXT, transcript_requested INTEGER DEFAULT 0, date_flagged TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (student_id) REFERENCES students(student_id));",
+            // Users table
+            "CREATE TABLE IF NOT EXISTS users (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "username TEXT UNIQUE NOT NULL, " +
+            "password_hash TEXT NOT NULL, " +
+            "salt TEXT NOT NULL" +
+            ");",
+
+            // SLPs table
+            "CREATE TABLE IF NOT EXISTS slps (" +
+            "slp_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "slp_code TEXT NOT NULL, " +
+            "name TEXT, " +
+            "description TEXT" +
+            ");",
+
+            // Students table
+            "CREATE TABLE IF NOT EXISTS students (" +
+            "student_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "student_number TEXT UNIQUE NOT NULL, " +
+            "first_name TEXT NOT NULL, " +
+            "last_name TEXT NOT NULL, " +
+            "email TEXT, " +
+            "phone TEXT, " +
+            "enrollment_date TEXT, " +
+            "current_slp_id INTEGER, " +
+            "status TEXT, " +
+            "FOREIGN KEY (current_slp_id) REFERENCES slps(slp_id)" +
+            ");",
+
+            // Modules table
+            "CREATE TABLE IF NOT EXISTS modules (" +
+            "module_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "module_code TEXT NOT NULL UNIQUE, " +
+            "name TEXT, " +
+            "pass_rate INTEGER NOT NULL" +
+            ");",
+
+            // SLP-Modules junction table
+            "CREATE TABLE IF NOT EXISTS slp_modules (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "slp_id INTEGER NOT NULL, " +
+            "module_id INTEGER NOT NULL, " +
+            "FOREIGN KEY (slp_id) REFERENCES slps(slp_id), " +
+            "FOREIGN KEY (module_id) REFERENCES modules(module_id)" +
+            ");",
+
+            // Student-Modules junction table
+            "CREATE TABLE IF NOT EXISTS student_modules (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "student_id INTEGER NOT NULL, " +
+            "module_id INTEGER NOT NULL, " +
+            "module_code TEXT, " +
+            "module_name TEXT, " +
+            "formative INTEGER DEFAULT 0, " +
+            "summative INTEGER DEFAULT 0, " +
+            "supplementary INTEGER DEFAULT 0, " +
+            "status TEXT, " +
+            "received_book INTEGER DEFAULT 0, " +
+            "registration_type TEXT, " +
+            "FOREIGN KEY (student_id) REFERENCES students(student_id), " +
+            "FOREIGN KEY (module_id) REFERENCES modules(module_id)" +
+            ");",
+
+            // Notes table
+            "CREATE TABLE IF NOT EXISTS notes (" +
+            "note_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "student_id INTEGER NOT NULL, " +
+            "note_text TEXT, " +
+            "date_added TEXT, " +
+            "FOREIGN KEY (student_id) REFERENCES students(student_id)" +
+            ");",
+
+            // Follow-ups table
+            "CREATE TABLE IF NOT EXISTS follow_ups (" +
+            "followup_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "student_id INTEGER NOT NULL, " +
+            "due_date TEXT NOT NULL, " +
+            "description TEXT, " +
+            "completed INTEGER DEFAULT 0, " +
+            "FOREIGN KEY (student_id) REFERENCES students(student_id)" +
+            ");",
+
+            // Students to graduate table
+            "CREATE TABLE IF NOT EXISTS students_to_graduate (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "student_id INTEGER NOT NULL, " +
+            "student_number TEXT NOT NULL, " +
+            "first_name TEXT NOT NULL, " +
+            "last_name TEXT NOT NULL, " +
+            "slp_course TEXT NOT NULL, " +
+            "email TEXT, " +
+            "phone TEXT, " +
+            "transcript_requested INTEGER DEFAULT 0, " +
+            "date_flagged TEXT DEFAULT CURRENT_TIMESTAMP, " +
+            "FOREIGN KEY (student_id) REFERENCES students(student_id)" +
+            ");"
         };
 
         try (Connection conn = DBUtil.getConnection(); Statement stmt = conn.createStatement()) {
