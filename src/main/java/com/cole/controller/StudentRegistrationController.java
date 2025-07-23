@@ -126,12 +126,15 @@ public class StudentRegistrationController {
                 SLPModuleService slpModuleService = new SLPModuleService();
                 for (Module module : slpModuleService.getModulesForSLP(selectedSLP.getId())) {
                     try (PreparedStatement smInsert = conn.prepareStatement(
-                            "INSERT INTO student_modules (student_id, module_id, module_code, module_name, received_book) VALUES (?, ?, ?, ?, ?)")) {
+                            "INSERT INTO student_modules (student_id, module_id, module_code, module_name, formative, summative, supplementary, received_book) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
                         smInsert.setInt(1, newStudentId);
                         smInsert.setInt(2, module.getId());
                         smInsert.setString(3, module.getModuleCode());
                         smInsert.setString(4, module.getName());
-                        smInsert.setBoolean(5, false); // Default received_book
+                        smInsert.setInt(5, 0); // formative
+                        smInsert.setInt(6, 0); // summative
+                        smInsert.setInt(7, 0); // supplementary
+                        smInsert.setInt(8, 0); // received_book
                         smInsert.executeUpdate();
                     }
                 }
