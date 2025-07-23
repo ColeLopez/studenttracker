@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
+import com.cole.Service.GraduationService;
 import com.cole.model.Student;
 import com.cole.model.StudentModule;
 import com.cole.util.DBUtil;
@@ -425,12 +425,16 @@ public class VirtualRecordCardController {
                                 int moduleId = rs.getInt("module_id");
                                 String moduleCode = rs.getString("module_code");
                                 String moduleName = rs.getString("name");
-                                String insertModuleSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, received_book) VALUES (?, ?, ?, ?, 0)";
+                                String insertModuleSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, formative, summative, supplementary, received_book) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                                 try (PreparedStatement insertModuleStmt = conn.prepareStatement(insertModuleSql)) {
                                     insertModuleStmt.setInt(1, selectedStudent.getId());
                                     insertModuleStmt.setInt(2, moduleId);
                                     insertModuleStmt.setString(3, moduleCode);
                                     insertModuleStmt.setString(4, moduleName);
+                                    insertModuleStmt.setInt(5, 0); // formative
+                                    insertModuleStmt.setInt(6, 0); // summative
+                                    insertModuleStmt.setInt(7, 0); // supplementary
+                                    insertModuleStmt.setInt(8, 0); // received_book
                                     insertModuleStmt.executeUpdate();
                                 }
                             }
@@ -987,6 +991,13 @@ public class VirtualRecordCardController {
             logger.error("Error saving exam result", e);
             showError("Error saving exam result", e.getMessage());
         }
+
+        // After updating marks:
+        GraduationService graduationService = new GraduationService();
+        graduationService.checkAndUpdateGraduationFlags();
+
+        // Optionally, notify GraduatesController to refresh if open
+        // (You may use an observer pattern or static reference if needed)
     }
 
     @FXML
