@@ -9,8 +9,10 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import com.cole.Service.EmailServices;
 import com.cole.model.FollowUpRow;
 import com.cole.util.DBUtil;
+import com.cole.util.EmailDialogUtil;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -44,7 +46,6 @@ public class FollowUpController {
     @FXML private TableColumn<FollowUpRow, Boolean> completedColumn;
 
     private ObservableList<FollowUpRow> followUpRows = FXCollections.observableArrayList();
-    private String sessionPassword = null; // Add this field
 
     @FXML
     private void initialize() {
@@ -223,162 +224,44 @@ public class FollowUpController {
     }
 
     private void sendReminderEmail(String subject, String body) {
-        Properties config = loadEmailSettings();
-        if (config == null) return;
-
+        Properties config = EmailServices.loadEmailSettings();
+        if (config == null) {
+            showError("Settings Error", "Could not load email settings.");
+            return;
+        }
         String from = config.getProperty("email.sender", "");
         String smtp = config.getProperty("email.smtp", "");
         String port = config.getProperty("email.port", "");
-
         if (from.isEmpty() || smtp.isEmpty() || port.isEmpty()) {
             showError("Settings Error", "Email settings are incomplete.");
             return;
         }
-
-        // Only prompt if sessionPassword is not set
-        if (sessionPassword == null || sessionPassword.isEmpty()) {
-            sessionPassword = promptForPassword();
-        }
-        if (sessionPassword == null || sessionPassword.isEmpty()) {
+        Stage owner = (Stage) followUpTable.getScene().getWindow();
+        String password = EmailDialogUtil.getSessionPassword(owner);
+        if (password == null || password.isEmpty()) {
             showError("No Password", "Email not sent: password required.");
             return;
         }
-
-        // Create a progress dialog with a status label
-        Stage progressStage = new Stage();
-        progressStage.initModality(Modality.APPLICATION_MODAL);
-        progressStage.setTitle("Sending Email...");
-
-        ProgressIndicator progressIndicator = new ProgressIndicator();
-        progressIndicator.setPrefSize(60, 60);
-
-        Label statusLabel = new Label("Starting...");
-        statusLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #333;");
-        statusLabel.setWrapText(true);
-        statusLabel.setPrefWidth(260);
-        statusLabel.setAlignment(Pos.CENTER); // Center the label's text
-
-        VBox box = new VBox(20, progressIndicator, statusLabel);
-        box.setStyle("-fx-padding: 30; -fx-background-color: #f8f8f8;");
-        box.setPrefWidth(300);
-        box.setAlignment(Pos.CENTER); // Center all children in the VBox
-
-        progressStage.setScene(new javafx.scene.Scene(box));
-        progressStage.setResizable(false);
-
-        // Create the background task
         Task<Void> emailTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
                 updateMessage("Authenticating...");
-                Thread.sleep(500); // Simulate authentication delay
+                Thread.sleep(500);
                 updateMessage("Sending email...");
-                sendEmail(from, sessionPassword, from, subject, body, smtp, port);
+                EmailServices.sendEmail(from, password, from, null, subject, body, smtp, port);
                 updateMessage("Finishing up...");
-                Thread.sleep(300); // Simulate finish delay
+                Thread.sleep(300);
                 return null;
             }
         };
-
-        // Bind the label to the task's message
-        statusLabel.textProperty().bind(emailTask.messageProperty());
-
-        emailTask.setOnSucceeded(e -> {
-            progressStage.close();
-            showInfo("Reminders Sent", "Email reminders have been sent to you.");
-        });
+        emailTask.setOnSucceeded(e -> showInfo("Reminders Sent", "Email reminders have been sent to you."));
         emailTask.setOnFailed(e -> {
-            progressStage.close();
             logger.error("Email Error", emailTask.getException());
             showError("Email Error", emailTask.getException().getMessage());
         });
-
-        // Show the progress dialog and start the task
-        progressStage.show();
-        new Thread(emailTask).start();
+        EmailDialogUtil.showEmailProgressDialog(owner, emailTask, "Sending Email...");
     }
 
-    private Properties loadEmailSettings() {
-        Properties config = new Properties();
-        try (java.io.FileInputStream fis = new java.io.FileInputStream("email_settings.properties")) {
-            config.load(fis);
-            return config;
-        } catch (Exception e) {
-            logger.error("Settings Error", e);
-            showError("Settings Error", "Could not load email settings.");
-            return null;
-        }
-    }
-
-    private void sendEmail(String from, String password, String to, String subject, String body, String smtp, String port) throws Exception {
-        Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.host", smtp);
-        props.put("mail.smtp.port", port);
-
-        Session session = Session.getInstance(props, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(from, password);
-            }
-        });
-
-        Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(from));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        message.setSubject(subject);
-        message.setText(body);
-
-        Transport.send(message);
-    }
-
-    private String promptForPassword() {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Email Password");
-        dialog.setHeaderText("Please enter your email password:");
-
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Password");
-
-        TextField visibleField = new TextField();
-        visibleField.setPromptText("Password");
-        visibleField.setManaged(false);
-        visibleField.setVisible(false);
-
-        CheckBox showPasswordCheck = new CheckBox("Show password");
-        passwordField.textProperty().bindBidirectional(visibleField.textProperty());
-
-        showPasswordCheck.selectedProperty().addListener((obs, wasSelected, isSelected) -> {
-            if (isSelected) {
-                visibleField.setText(passwordField.getText());
-                dialog.getDialogPane().setContent(new VBox(visibleField, showPasswordCheck));
-                visibleField.setManaged(true);
-                visibleField.setVisible(true);
-                passwordField.setManaged(false);
-                passwordField.setVisible(false);
-            } else {
-                passwordField.setText(visibleField.getText());
-                dialog.getDialogPane().setContent(new VBox(passwordField, showPasswordCheck));
-                passwordField.setManaged(true);
-                passwordField.setVisible(true);
-                visibleField.setManaged(false);
-                visibleField.setVisible(false);
-            }
-        });
-
-        dialog.getDialogPane().setContent(new VBox(passwordField, showPasswordCheck));
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == ButtonType.OK) {
-                return showPasswordCheck.isSelected() ? visibleField.getText() : passwordField.getText();
-            }
-            return null;
-        });
-
-        Optional<String> result = dialog.showAndWait();
-        return result.orElse(null);
-    }
 
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
