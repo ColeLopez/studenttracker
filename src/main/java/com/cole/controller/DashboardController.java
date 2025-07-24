@@ -190,4 +190,56 @@ public class DashboardController {
     private void handleManageGraduates(ActionEvent event) {
         setCenterContent("/fxml/graduates.fxml");
     }
+
+    /**
+     * Handles the action to manage SCAA emails when the user clicks the corresponding button.
+     * Switches the center content to the SCAA Email management view.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleSCAAEmail(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/scaaSettings.fxml"));
+            Parent root = loader.load();
+            Stage popupStage = new Stage();
+            popupStage.setTitle("SCAA Email Settings");
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(Stage.getWindows().stream()
+                .filter(javafx.stage.Window::isShowing)
+                .findFirst()
+                .orElse(null));
+            popupStage.centerOnScreen();
+            popupStage.showAndWait();
+        } catch (IOException e) {
+            logger.error("Failed to load Email Settings FXML", e);
+            showError("Error", "Could not open Email Settings.");
+        }
+    }
+
+    /**
+     * Handles the action to manage SCAA emails when the user clicks the corresponding button.
+     * Switches the center content to the SCAA Email management view.
+     * @param event ActionEvent from the UI
+     */ 
+    @FXML
+    private void handleManagerEmail(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/managerEmailSettings.fxml"));
+            Parent root = loader.load();
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Manager Email Settings");
+            popupStage.setScene(new javafx.scene.Scene(root));
+            popupStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            popupStage.initOwner(Stage.getWindows().stream()
+                .filter(javafx.stage.Window::isShowing)
+                .findFirst()
+                .orElse(null));
+            popupStage.centerOnScreen();
+            popupStage.showAndWait();
+        } catch (IOException e) {
+            logger.error("Failed to load Email Settings FXML", e);
+            showError("Error", "Could not open Email Settings.");
+        }
+    }
 }
