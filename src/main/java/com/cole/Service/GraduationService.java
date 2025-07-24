@@ -4,7 +4,6 @@ import java.sql.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import com.cole.model.StudentToGraduate;
 import com.cole.util.DBUtil;
 
 public class GraduationService {

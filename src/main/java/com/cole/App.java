@@ -2,17 +2,10 @@ package com.cole;
 
 import com.cole.Service.GraduationService;
 import com.cole.util.DBInit;
-import com.cole.util.PasswordUtil;
-import com.cole.util.DBUtil;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 /**
  * JavaFX App
