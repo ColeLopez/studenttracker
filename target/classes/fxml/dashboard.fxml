@@ -43,7 +43,8 @@
                   <Menu mnemonicParsing="false" text="Email Configurations">
                     <items>
                       <MenuItem mnemonicParsing="false" onAction="#handleEmailSettings" text="Configure Email Recipient" />
-                      <MenuItem mnemonicParsing="false" text="Configure Transcript Request Recipient" />
+                      <MenuItem mnemonicParsing="false" onAction="#handleSCAAEmail" text="Configure SCAA Recipient" />
+                      <MenuItem mnemonicParsing="false" onAction="#handleManagerEmail" text="Configure Manager CC" />
                     </items>
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
