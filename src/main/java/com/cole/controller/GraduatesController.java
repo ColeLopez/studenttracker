@@ -45,7 +45,6 @@ public class GraduatesController {
 
     private final ObservableList<StudentToGraduate> graduationList = FXCollections.observableArrayList();
 
-    private String sessionPassword = null;
 
     @FXML
     public void initialize() {
