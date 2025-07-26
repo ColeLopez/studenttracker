@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -20,13 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.layout.VBox;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
-
 import javafx.concurrent.Task;
-import javafx.geometry.Pos;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import org.slf4j.Logger;
