@@ -6,23 +6,11 @@ import org.slf4j.LoggerFactory;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-
-// ...existing code...
-
 /**
- * Controller for the dashboard home view.
- * <p>
- * Handles UI events and database operations for displaying student and graduation statistics.
- * <p>
- * This class is responsible for:
- * <ul>
- *   <li>Loading student and graduation counts from the database</li>
- *   <li>Updating dashboard labels with statistics</li>
- *   <li>Showing error messages if statistics cannot be loaded</li>
- * </ul>
- * <p>
- * All database operations are performed asynchronously using JavaFX Tasks.
- */
+ * Controller for the Dashboard Home view.
+ * This class handles the initialization and loading of dashboard statistics
+ * such as student count and upcoming graduations.
+ */ 
 public class DashboardHomeController {
     private static final Logger logger = LoggerFactory.getLogger(DashboardHomeController.class);
     private final DashboardService dashboardService = new DashboardService();

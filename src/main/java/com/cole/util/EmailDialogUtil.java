@@ -9,8 +9,17 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 public class EmailDialogUtil {
+    /** Session password for email operations. */
     private static String sessionPassword = null;
 
+    /**
+     * Gets the session password for email operations.
+     * If the password is already set, it returns the existing value.
+     * Otherwise, it prompts the user to enter their email password.
+     *
+     * @param owner the owner stage for the dialog
+     * @return the email password entered by the user
+     */
     public static String getSessionPassword(Stage owner) {
         if (sessionPassword != null && !sessionPassword.isEmpty()) {
             return sessionPassword;
@@ -51,7 +60,7 @@ public class EmailDialogUtil {
             }
         });
 
-        // Layout
+        // Layout for the dialog
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(15);
@@ -79,6 +88,15 @@ public class EmailDialogUtil {
         return sessionPassword;
     }
 
+    /**
+     * Displays a progress dialog for email operations.
+     * This dialog shows a progress bar and a message while the email task is running.
+     *
+     * @param owner the owner stage for the dialog
+     * @param task the Task representing the email operation
+     * @param title the title of the dialog
+     * @param <T> the type of result produced by the task
+     */
     public static <T> void showEmailProgressDialog(Stage owner, Task<T> task, String title) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle(title);
@@ -119,6 +137,10 @@ public class EmailDialogUtil {
         dialog.showAndWait();
     }
 
+    /**
+     * Clears the session password, allowing the user to re-enter it if needed.
+     * This is useful for scenarios where the password may change or needs to be reset.
+     */
     public static void clearSessionPassword() {
         sessionPassword = null;
     }

@@ -62,7 +62,8 @@ public class StudentViewController {
     private TextField searchField; // fx:id must match your FXML
 
     /**
-     * Initializes the controller and sets up the TableView columns.
+     * Initializes the StudentViewController.
+     * This method sets up the TableView columns and loads students from the database.
      */
     @FXML
     private void initialize() {

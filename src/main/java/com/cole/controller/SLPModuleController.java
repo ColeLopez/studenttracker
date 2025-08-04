@@ -16,26 +16,10 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-// ...existing code...
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Controller for managing Student Learning Pathways (SLPs) and their linked modules.
- * <p>
- * Handles UI events and database operations for linking/unlinking modules to SLPs.
- * <p>
- * This class is responsible for:
- * <ul>
- *   <li>Loading SLPs and modules from the database</li>
- *   <li>Linking and unlinking modules to SLPs</li>
- *   <li>Handling user interactions for module management</li>
- *   <li>Providing dialogs for module selection and creation</li>
- * </ul>
- * <p>
- * All database operations are performed asynchronously using JavaFX Tasks.
- */
 public class SLPModuleController {
     private static final Logger logger = LoggerFactory.getLogger(SLPModuleController.class);
     private final SLPModuleService slpModuleService = new SLPModuleService();
@@ -48,8 +32,6 @@ public class SLPModuleController {
 
     private final ObservableList<SLP> slps = FXCollections.observableArrayList();
     private final ObservableList<Module> linkedModules = FXCollections.observableArrayList();
-
-    // ...existing code...
 
     /**
      * Initializes the controller and sets up UI bindings for the module table and SLP ComboBox.
@@ -273,6 +255,11 @@ public class SLPModuleController {
         }
     }
 
+    /**
+     * Handles adding a new module to the selected SLP.
+     * Invoked by the UI when the user clicks the "New Module" button.
+     * Opens a dialog to enter module details and adds it to the database.
+     */
     @FXML
     private void handleNewModule() {
         Optional<Module> result = showNewModuleDialog();

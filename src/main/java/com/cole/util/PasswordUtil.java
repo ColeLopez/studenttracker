@@ -4,20 +4,6 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-/**
- * Utility class for password hashing and salt generation.
- * <p>
- * Note: For production, consider using a stronger algorithm like bcrypt, PBKDF2, or Argon2.
- * <p>
- * Usage:
- * <pre>
- *     String salt = PasswordUtil.generateSalt();
- *     String hash = PasswordUtil.hashPassword(password, salt);
- * </pre>
- * <p>
- * This class cannot be instantiated.
- */
 public final class PasswordUtil {
     /** SLF4J logger for PasswordUtil operations. */
     private static final Logger logger = LoggerFactory.getLogger(PasswordUtil.class);

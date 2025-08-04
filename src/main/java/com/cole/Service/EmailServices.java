@@ -21,6 +21,10 @@ import javafx.scene.layout.VBox;
 
 public class EmailServices {
     
+    /**
+     * Loads email settings from a properties file.
+     * @return Properties object containing email settings, or null if loading fails
+     */
     public static Properties loadEmailSettings() {
         Properties config = new Properties();
         try (java.io.FileInputStream fis = new java.io.FileInputStream("email_settings.properties")) {
@@ -32,6 +36,10 @@ public class EmailServices {
         }
     }
 
+    /**
+     * Prompts the user for their email password using a dialog.
+     * @return the entered password, or null if cancelled
+     */
     public static String promptForPassword() {
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Email Password");
@@ -80,6 +88,18 @@ public class EmailServices {
         return result.orElse(null);
     }
 
+    /**
+     * Sends an email with the specified parameters.
+     * @param from the sender's email address
+     * @param password the sender's email password
+     * @param to the recipient's email address
+     * @param cc additional CC recipients
+     * @param subject the subject of the email
+     * @param body the body of the email
+     * @param smtp SMTP server address
+     * @param port SMTP server port
+     * @throws Exception if sending fails
+     */
     public static void sendEmail(String from, String password, String to, String cc, String subject, String body, String smtp, String port) throws Exception {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -120,6 +140,10 @@ public class EmailServices {
         Transport.send(message);
     }
 
+    /**
+     * Gets the SCAA recipient email address from properties file.
+     * @return the SCAA recipient email address
+     */
     public static String getScaaRecipient() {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream("transcript_email_settings.properties")) {
@@ -131,6 +155,10 @@ public class EmailServices {
         }
     }
 
+    /**
+     * Gets the CC email address for the manager.
+     * @return the manager's CC email address
+     */
     public static String getManagerCC() {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream("manager_email_settings.properties")) {

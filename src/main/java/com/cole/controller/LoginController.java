@@ -19,21 +19,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
-/**
- * Controller for handling user login functionality.
- * <p>
- * Handles UI events and database operations for authenticating users.
- * <p>
- * This class is responsible for:
- * <ul>
- *   <li>Validating login input fields</li>
- *   <li>Authenticating users against the database</li>
- *   <li>Switching scenes on successful login</li>
- *   <li>Showing error dialogs for validation and authentication errors</li>
- * </ul>
- * <p>
- * All database operations are performed asynchronously using JavaFX Tasks.
- */
+
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML

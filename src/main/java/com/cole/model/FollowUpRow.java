@@ -23,6 +23,7 @@ public class FollowUpRow {
         this.completed = new SimpleBooleanProperty(completed);
     }
 
+    
     public int getFollowUpId() { return followUpId; }
     
     public void setFollowUpId(int id) { this.followUpId = id; }

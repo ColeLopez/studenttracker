@@ -10,18 +10,6 @@ import java.sql.SQLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Utility class for database connection and file initialization.
- * <p>
- * This class provides static methods to manage the SQLite database file and obtain connections.
- * <p>
- * Usage:
- * <pre>
- *     Connection conn = DBUtil.getConnection();
- * </pre>
- * <p>
- * This class cannot be instantiated.
- */
 public final class DBUtil {
     /** SLF4J logger for DBUtil operations. */
     private static final Logger logger = LoggerFactory.getLogger(DBUtil.class);

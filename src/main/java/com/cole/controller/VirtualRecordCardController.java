@@ -292,6 +292,7 @@ public class VirtualRecordCardController {
             refreshCallback.run();
         }
     }
+    
     /**
      * Handles editing the selected student's details.
      */
@@ -587,7 +588,9 @@ public class VirtualRecordCardController {
         }
     }
 
-    // Helper class for module selection dialog
+    /**
+     * Represents a module option for selection dialogs.
+     */
     private static class ModuleOption {
         private final int moduleId;
         private final String moduleCode;

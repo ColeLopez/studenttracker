@@ -14,9 +14,6 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Controller for student registration form.
- */
 public class StudentRegistrationController {
 
     @FXML private TextField studentNumberField;
@@ -36,7 +33,8 @@ public class StudentRegistrationController {
     private static final Logger logger = LoggerFactory.getLogger(StudentRegistrationController.class);
 
     /**
-     * Initializes the controller and loads SLPs and status options.
+     * Initializes the StudentRegistrationController.
+     * This method loads SLPs and sets up the status ComboBox.
      */
     @FXML
     public void initialize() {
@@ -45,7 +43,8 @@ public class StudentRegistrationController {
     }
 
     /**
-     * Loads SLPs from the database and populates the ComboBox.
+     * Loads SLPs from the database and populates the SLP ComboBox.
+     * This method retrieves all SLPs and adds them to the ComboBox for selection.
      */
     private void loadSLPs() {
         try (Connection conn = DBUtil.getConnection();
@@ -68,6 +67,8 @@ public class StudentRegistrationController {
 
     /**
      * Handles the save action for student registration.
+     * This method validates input fields, checks for duplicates, and saves the student to the database.
+     * It also auto-links modules based on the selected SLP.
      */
     @FXML
     private void handleSave() {
@@ -171,7 +172,8 @@ public class StudentRegistrationController {
     }
 
     /**
-     * Clears all form fields.
+     * Clears the form fields after successful registration.
+     * This method resets all input fields to their default state.
      */
     private void clearForm() {
         studentNumberField.clear();
@@ -185,7 +187,9 @@ public class StudentRegistrationController {
     }
 
     /**
-     * Handles the clear action for the form.
+     * Shows an error alert dialog.
+     * @param title the title of the alert
+     * @param message the content of the alert
      */
     @FXML
     private void handleClear() {
@@ -194,6 +198,8 @@ public class StudentRegistrationController {
 
     /**
      * Shows an error alert dialog.
+     * @param title the title of the alert
+     * @param message the content of the alert
      */
     private void showError(String title, String message) {
         logger.warn(title + ": " + message);

@@ -6,21 +6,6 @@ import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Utility class for initializing the database schema.
- * <p>
- * This class provides a static method to create all required tables for the
- * application.
- * It uses SQL statements to ensure tables exist and are up-to-date.
- * <p>
- * Usage:
- * 
- * <pre>
- * DBInit.initializeDatabase();
- * </pre>
- * <p>
- * This class cannot be instantiated.
- */
 public final class DBInit {
     /** SLF4J logger for DBInit operations. */
     private static final Logger logger = LoggerFactory.getLogger(DBInit.class);
@@ -142,6 +127,7 @@ public final class DBInit {
             ");"
         };
 
+        // Execute schema statements
         try (Connection conn = DBUtil.getConnection(); Statement stmt = conn.createStatement()) {
             for (String sql : schemaStatements) {
                 stmt.execute(sql);

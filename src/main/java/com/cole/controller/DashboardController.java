@@ -12,20 +12,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
-/**
- * Controller for the main dashboard view.
- * <p>
- * Handles UI events and scene switching for dashboard content.
- * <p>
- * This class is responsible for:
- * <ul>
- *   <li>Loading and switching dashboard content views</li>
- *   <li>Handling logout and exit actions</li>
- *   <li>Showing error dialogs for view loading issues</li>
- * </ul>
- * <p>
- * All FXML view loading is performed on the JavaFX Application Thread.
- */
 public class DashboardController {
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     @FXML

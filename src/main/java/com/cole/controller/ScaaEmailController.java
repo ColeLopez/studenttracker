@@ -11,6 +11,10 @@ public class ScaaEmailController {
 
     private static final String SETTINGS_FILE = "transcript_email_settings.properties";
 
+    /**
+     * Initializes the ScaaEmailController.
+     * This method loads the SCAA recipient email from a properties file.
+     */
     @FXML
     public void initialize() {
         try (FileInputStream fis = new FileInputStream(SETTINGS_FILE)) {
@@ -22,6 +26,10 @@ public class ScaaEmailController {
         }
     }
 
+    /**
+     * Handles the save action for the SCAA email.
+     * This method saves the SCAA recipient email address to a properties file.
+     */
     @FXML
     private void handleSave() {
         Properties props = new Properties();
@@ -34,6 +42,13 @@ public class ScaaEmailController {
         }
     }
 
+    /**
+     * Displays an information alert with the specified title and message.
+     * This method is used to show success messages to the user.
+     *
+     * @param title the title of the information alert
+     * @param message the content of the information message
+     */
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -42,6 +57,13 @@ public class ScaaEmailController {
         alert.showAndWait();
     }
 
+    /**
+     * Displays an error alert with the specified title and message.
+     * This method is used to show error messages to the user.
+     *
+     * @param title the title of the error alert
+     * @param message the content of the error message
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -50,7 +72,12 @@ public class ScaaEmailController {
         alert.showAndWait();
     }
 
-    // Static method to get the SCAA recipient email for use elsewhere
+    /**
+     * Validates the SCAA recipient email address.
+     * This method checks if the email field is empty or invalid.
+     *
+     * @return true if the email is valid, false otherwise
+     */
     public static String getScaaRecipient() {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream(SETTINGS_FILE)) {

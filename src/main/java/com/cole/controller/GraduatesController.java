@@ -45,7 +45,10 @@ public class GraduatesController {
 
     private final ObservableList<StudentToGraduate> graduationList = FXCollections.observableArrayList();
 
-
+    /**
+     * Initializes the GraduatesController.
+     * This method sets up the table columns and loads the graduation list from the database.
+     */
     @FXML
     public void initialize() {
         // Set up property bindings for all columns
@@ -190,6 +193,13 @@ public class GraduatesController {
         EmailDialogUtil.showEmailProgressDialog(owner, emailTask, "Sending Email...");
     }
 
+    /**
+     * Displays an error alert with the specified title and message.
+     * This method is used to show error messages to the user.
+     *
+     * @param title the title of the error alert
+     * @param message the content of the error message
+     */
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -198,6 +208,13 @@ public class GraduatesController {
         alert.showAndWait();
     }
 
+    /**
+     * Displays an error alert with the specified title and message.
+     * This method is used to show error messages to the user.
+     *
+     * @param title the title of the error alert
+     * @param message the content of the error message
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

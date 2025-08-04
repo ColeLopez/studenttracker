@@ -9,23 +9,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-// ...existing code...
-
-/**
- * Controller for the module form dialog.
- * <p>
- * Handles UI events and database operations for adding new modules.
- * <p>
- * This class is responsible for:
- * <ul>
- *   <li>Validating module input fields</li>
- *   <li>Saving new modules to the database</li>
- *   <li>Closing the dialog window</li>
- *   <li>Showing error dialogs for validation and database errors</li>
- * </ul>
- * <p>
- * All database operations are performed asynchronously using JavaFX Tasks.
- */
 public class ModuleFormController {
     private static final Logger logger = LoggerFactory.getLogger(ModuleFormController.class);
     private final ModuleService moduleService = new ModuleService();

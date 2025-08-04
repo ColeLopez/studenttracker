@@ -10,6 +10,11 @@ public class GraduationService {
 
     private static final Logger logger = Logger.getLogger(GraduationService.class.getName());
 
+    /**
+     * Checks if students have passed all modules and updates their graduation flags accordingly.
+     * This method connects to the database, retrieves student data, checks module pass status,
+     * and updates the graduation flags in the 'students_to_graduate' table.
+     */
     public void checkAndUpdateGraduationFlags() {
         try (Connection conn = DBUtil.getConnection()) {
             String studentQuery = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, slp.name AS slp_course " +
@@ -34,6 +39,13 @@ public class GraduationService {
         }
     }
 
+    /**
+     * Checks if a student has passed all their modules.
+     * @param conn the database connection
+     * @param studentId the ID of the student to check
+     * @return true if the student has passed all modules, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
     private boolean hasPassedAllModules(Connection conn, int studentId) throws SQLException {
        String query = "SELECT sm.module_id, m.name AS module_name, sm.formative, sm.summative, sm.supplementary, m.pass_rate " +
                        "FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id " +
@@ -75,9 +87,15 @@ public class GraduationService {
             return false;
         }
         return allPassed;
-    // Removed unused parseIntSafe method
-    // Removed unused parseIntSafe method
     }
+
+    /**
+     * Flags a student for graduation by inserting their details into the 'students_to_graduate' table.
+     * @param conn the database connection
+     * @param rs the ResultSet containing student data
+     * @param slpCourse the SLP course of the student
+     * @throws SQLException if a database access error occurs
+     */
     private void flagStudent(Connection conn, ResultSet rs, String slpCourse) throws SQLException {
         int studentId = rs.getInt("student_id");
         String checkQuery = "SELECT 1 FROM students_to_graduate WHERE student_id = ?";
@@ -104,6 +122,12 @@ public class GraduationService {
         }
     }
 
+    /**
+     * Unflags a student for graduation by deleting their entry from the 'students_to_graduate' table.
+     * @param conn the database connection
+     * @param studentId the ID of the student to unflag
+     * @throws SQLException if a database access error occurs
+     */
     private void unflagStudent(Connection conn, int studentId) throws SQLException {
         String deleteQuery = "DELETE FROM students_to_graduate WHERE student_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(deleteQuery)) {

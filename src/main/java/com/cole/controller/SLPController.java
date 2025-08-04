@@ -18,22 +18,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextInputDialog;
 
-/**
- * Controller for managing Student Learning Pathways (SLPs).
- * <p>
- * Handles UI events and database operations for adding, editing, and deleting SLPs.
- * <p>
- * This class is responsible for:
- * <ul>
- *   <li>Loading SLPs from the database</li>
- *   <li>Adding new SLPs</li>
- *   <li>Editing existing SLPs</li>
- *   <li>Deleting SLPs</li>
- *   <li>Providing dialogs for SLP management</li>
- * </ul>
- * <p>
- * All database operations are performed asynchronously using JavaFX Tasks.
- */
 public class SLPController {
     private static final Logger logger = LoggerFactory.getLogger(SLPController.class);
     private final SLPService slpService = new SLPService();
@@ -146,12 +130,10 @@ public class SLPController {
         });
     }
 
-    // ...existing code...
-
     /**
-     * Handles editing the selected SLP via a dialog.
+     * Handles editing the selected SLP.
      * Invoked by the UI when the user clicks the "Edit SLP" button.
-     * Prompts for new code and name, and updates the SLP in the database.
+     * Opens a dialog to edit the SLP code and name.
      */
     @FXML
     private void handleEditSLP() {

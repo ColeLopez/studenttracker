@@ -21,6 +21,10 @@ public class ManagerEmailController {
 
     private static final String SETTINGS_FILE = "manager_email_settings.properties";
 
+    /**
+     * Initializes the ManagerEmailController.
+     * This method loads the manager email settings from a properties file.
+     */
     @FXML
     public void initialize() {
         try (FileInputStream fis = new FileInputStream(SETTINGS_FILE)) {
@@ -32,6 +36,10 @@ public class ManagerEmailController {
         }
     }
 
+    /**
+     * Handles the save action for the manager email.
+     * This method saves the manager's email address to a properties file.
+     */
     @FXML
     private void handleSave() {
         Properties props = new Properties();
@@ -45,6 +53,13 @@ public class ManagerEmailController {
         }
     }
 
+    /**
+     * Displays an information alert with the specified title and message.
+     * This method is used to show informational messages to the user.
+     *
+     * @param title the title of the information alert
+     * @param message the content of the information message
+     */
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -53,6 +68,13 @@ public class ManagerEmailController {
         alert.showAndWait();
     }
 
+    /**
+     * Displays an error alert with the specified title and message.
+     * This method is used to show error messages to the user.
+     *
+     * @param title the title of the error alert
+     * @param message the content of the error message
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

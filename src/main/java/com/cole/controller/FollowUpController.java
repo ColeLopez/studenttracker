@@ -21,6 +21,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.concurrent.Task;
 import javafx.stage.Stage;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
+import javafx.scene.control.Alert;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +44,10 @@ public class FollowUpController {
 
     private ObservableList<FollowUpRow> followUpRows = FXCollections.observableArrayList();
 
+    /**
+     * Initializes the controller and sets up the table view.
+     * This method is called automatically by the JavaFX framework after FXML loading.
+     */
     @FXML
     private void initialize() {
         setupTableColumns();
@@ -48,6 +56,10 @@ public class FollowUpController {
         loadFollowUps();
     }
 
+    /**
+     * Sets up the table columns with their respective cell value factories.
+     * This method binds the data from FollowUpRow to the table columns.
+     */
     private void setupTableColumns() {
         studentNumberColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStudentNumber()));
         studentNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getStudentName()));
@@ -57,6 +69,10 @@ public class FollowUpController {
         dueDateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDueDate()));
     }
 
+    /**
+     * Sets up the row color coding based on the due date and completion status.
+     * Overdue follow-ups will be highlighted in red.
+     */
     private void setupRowColorCoding() {
         followUpTable.setRowFactory(tableView -> new TableRow<FollowUpRow>() {
             @Override
@@ -76,6 +92,10 @@ public class FollowUpController {
         });
     }
 
+    /**
+     * Sets up the completed column with a checkbox cell factory.
+     * This allows users to mark follow-ups as completed directly in the table.
+     */
     private void setupCompletedColumn() {
         completedColumn.setCellValueFactory(cellData -> cellData.getValue().completedProperty());
         completedColumn.setCellFactory(tc -> new CheckBoxTableCell<>());
@@ -91,6 +111,10 @@ public class FollowUpController {
         });
     }
 
+    /**
+     * Loads follow-up data from the database and populates the table.
+     * This method retrieves all incomplete follow-ups and displays them in the table.
+     */
     private void loadFollowUps() {
         followUpRows.clear();
         String sql = 
@@ -127,6 +151,10 @@ public class FollowUpController {
         followUpTable.setItems(followUpRows);
     }
 
+    /**
+     * Handles the reminder button click event.
+     * This method sends an email reminder for upcoming, current, and overdue follow-ups.
+     */
     @FXML
     private void handleReminderButton() {
         LocalDate today = LocalDate.now();
@@ -140,6 +168,10 @@ public class FollowUpController {
         sendReminderEmail("Upcoming Follow-Ups", emailBody);
     }
 
+    /**
+     * Handles the current follow-ups button click event.
+     * This method sends an email reminder for follow-ups due today.
+     */
     @FXML
     private void handleCurrentFollowupsButton() {
         LocalDate today = LocalDate.now();
@@ -150,6 +182,10 @@ public class FollowUpController {
         sendReminderEmail("Current Follow-Ups", emailBody);
     }
 
+    /**
+     * Handles the overdue follow-ups button click event.
+     * This method sends an email reminder for overdue follow-ups.
+     */
     @FXML
     private void handleOverdueFollowupsButton() {
         LocalDate today = LocalDate.now();
@@ -168,7 +204,10 @@ public class FollowUpController {
         }
         sendReminderEmail("Overdue Follow-Ups", emailBody.toString());
     }
-
+    /**
+     * Handles the filter button for today's follow-ups.
+     * This method filters the table to show only follow-ups due today.
+     */
     @FXML
     private void handleTodayFilterButton() {
         LocalDate today = LocalDate.now();
@@ -178,6 +217,10 @@ public class FollowUpController {
         followUpTable.setItems(todayRows);
     }
 
+    /**
+     * Handles the filter button for overdue follow-ups.
+     * This method filters the table to show only overdue follow-ups.
+     */
     @FXML
     private void handleOverdueFilterButton() {
         LocalDate today = LocalDate.now();
@@ -186,7 +229,10 @@ public class FollowUpController {
         );
         followUpTable.setItems(overdueRows);
     }
-
+    /**
+     * Handles the filter button for upcoming follow-ups.
+     * This method filters the table to show follow-ups due within the next 7 days.
+     */
     @FXML
     private void handleUpcomingFilterButton() {
         LocalDate today = LocalDate.now();
@@ -201,10 +247,25 @@ public class FollowUpController {
         followUpTable.setItems(upcomingRows);
     }
 
+    /**
+     * Filters the follow-up rows based on a given predicate.
+     * This method is used to filter the follow-ups for reminders and table views.
+     *
+     * @param predicate the condition to filter follow-up rows
+     * @return a list of filtered follow-up rows
+     */
     private List<FollowUpRow> filterFollowUps(java.util.function.Predicate<FollowUpRow> predicate) {
         return followUpRows.stream().filter(predicate).collect(Collectors.toList());
     }
 
+    /**
+     * Builds the email body for follow-up reminders.
+     * This method formats the follow-up rows into a readable string for the email body.
+     *
+     * @param header the header text for the email
+     * @param rows the list of follow-up rows to include in the email
+     * @return a formatted string representing the email body
+     */
     private String buildEmailBody(String header, List<FollowUpRow> rows) {
         StringBuilder body = new StringBuilder(header).append("\n\n");
         for (FollowUpRow row : rows) {
@@ -216,6 +277,13 @@ public class FollowUpController {
         return body.toString();
     }
 
+    /**
+     * Sends an email reminder with the specified subject and body.
+     * This method uses the EmailServices to send the email and handles any errors.
+     *
+     * @param subject the subject of the email
+     * @param body the body content of the email
+     */
     private void sendReminderEmail(String subject, String body) {
         Properties config = EmailServices.loadEmailSettings();
         if (config == null) {
@@ -255,7 +323,13 @@ public class FollowUpController {
         EmailDialogUtil.showEmailProgressDialog(owner, emailTask, "Sending Email...");
     }
 
-
+    /**
+     * Displays an error alert with the specified title and message.
+     * This method is used to show error messages to the user.
+     *
+     * @param title the title of the error alert
+     * @param message the content of the error message
+     */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -264,6 +338,13 @@ public class FollowUpController {
         alert.showAndWait();
     }
 
+    /**
+     * Displays an information alert with the specified title and message.
+     * This method is used to show informational messages to the user.
+     *
+     * @param title the title of the information alert
+     * @param message the content of the information message
+     */
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -272,6 +353,13 @@ public class FollowUpController {
         alert.showAndWait();
     }
 
+    /**
+     * Updates the completion status of a follow-up in the database.
+     * This method is called when a follow-up is marked as completed or uncompleted.
+     *
+     * @param followUpId the ID of the follow-up to update
+     * @param completed the new completion status
+     */
     private void updateFollowUpCompleted(int followUpId, boolean completed) {
         String sql = "UPDATE follow_ups SET completed = ? WHERE followup_id = ?";
         try (Connection conn = DBUtil.getConnection();
