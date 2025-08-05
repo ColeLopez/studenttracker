@@ -53,9 +53,9 @@
             </Menu>
             <Menu mnemonicParsing="false" text="Reports">
               <items>
-                <MenuItem mnemonicParsing="false" text="Export Student Summary" />
-                  <MenuItem mnemonicParsing="false" text="Export Follow-Up History" />
-                  <MenuItem mnemonicParsing="false" text="Export Graduates List" />
+                <MenuItem mnemonicParsing="false" onAction="#handleStudentReport" text="Export Student Summary" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleFollowUpReport" text="Export Follow-Up History" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleGraduatesReport" text="Export Graduates List" />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Tools">
