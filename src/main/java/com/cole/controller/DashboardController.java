@@ -228,4 +228,16 @@ public class DashboardController {
             showError("Error", "Could not open Email Settings.");
         }
     }
+
+    public void handleStudentReport(ActionEvent event) {
+        
+    }
+
+    public void handleFollowUpReport(ActionEvent event) {
+        
+    }
+
+    public void handleGraduatesReport(ActionEvent event) {
+        
+    }
 }
