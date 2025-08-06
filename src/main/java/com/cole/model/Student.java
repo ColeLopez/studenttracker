@@ -13,9 +13,9 @@ public class Student {
     private final SimpleStringProperty phoneNumber;
     private final SimpleStringProperty slp;
     private final SimpleStringProperty status;
-    
+    private final SimpleStringProperty enrollmentDate;
 
-    public Student(int id, String studentNumber, String firstName, String lastName, String email, String phoneNumber, String slp, String status) {
+    public Student(int id, String studentNumber, String firstName, String lastName, String email, String phoneNumber, String slp, String status, String enrollmentDate) {
         this.id = new SimpleIntegerProperty(id);
         this.studentNumber = new SimpleStringProperty(studentNumber);
         this.firstName = new SimpleStringProperty(firstName);
@@ -24,6 +24,7 @@ public class Student {
         this.phoneNumber = new SimpleStringProperty(phoneNumber);
         this.slp = new SimpleStringProperty(slp);
         this.status = new SimpleStringProperty(status);
+        this.enrollmentDate = new SimpleStringProperty(enrollmentDate);
     }
 
     public int getId(){
@@ -58,6 +59,10 @@ public class Student {
         return status.get();
     }
 
+    public String getEnrollmentDate() {
+        return enrollmentDate.get();
+    }
+
     public SimpleStringProperty studentNumberProperty() {
         return studentNumber;
     }
@@ -84,6 +89,10 @@ public class Student {
 
     public SimpleStringProperty statusProperty() {
         return status;
+    }
+
+    public SimpleStringProperty enrollmentDateProperty() {
+        return enrollmentDate;
     }
 
 }
