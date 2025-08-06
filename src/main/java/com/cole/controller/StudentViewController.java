@@ -143,7 +143,7 @@ public class StudentViewController {
     private void loadStudents() {
         studentList.clear();
 
-        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, sl.name AS slp_name, s.status " +
+        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, sl.name AS slp_name, s.status , s.enrollment_date " +
                      "FROM students s " +
                      "LEFT JOIN slps sl ON s.current_slp_id = sl.slp_id " +
                      "ORDER BY s.enrollment_date DESC";
@@ -160,7 +160,8 @@ public class StudentViewController {
                     rs.getString("email"),
                     rs.getString("phone"),
                     rs.getString("slp_name"), // Use SLP name instead of ID
-                    rs.getString("status")
+                    rs.getString("status"),
+                    rs.getString("enrollment_date") // Ensure this matches your Student constructor
                 ));
             }
         } catch (SQLException e) {
