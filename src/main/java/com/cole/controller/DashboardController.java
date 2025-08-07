@@ -1,21 +1,32 @@
 package com.cole.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.cole.model.StudentReportData;
+import com.cole.Service.StudentReportsService;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class DashboardController {
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     @FXML
     private AnchorPane contentArea;
+    private final StudentReportsService reportsService = new StudentReportsService(); // Assuming ReportsService is used for report generation
+
     /**
      * Initializes the controller and loads the dashboard home view.
      * This method is called automatically by the JavaFX framework after FXML loading.
@@ -52,6 +63,14 @@ public class DashboardController {
      */
     private void showError(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
@@ -229,8 +248,38 @@ public class DashboardController {
         }
     }
 
+    /**
+     * Handles the action to generate and export the student report when the user clicks the corresponding button.
+     * Prompts for the student number and saves the report as a PDF file.
+     * @param event ActionEvent from the UI
+     */
     public void handleStudentReport(ActionEvent event) {
-        
+        // Prompt for student number
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Export Student Summary");
+        dialog.setHeaderText("Enter Student Number");
+        dialog.setContentText("Student Number:");
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(studentNumber -> {
+            StudentReportData reportData = reportsService.getStudentReportData(studentNumber);
+            if (reportData == null) {
+                showError("Not Found", "No student found with number: " + studentNumber);
+                return;
+            }
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Student Summary PDF");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fileChooser.showSaveDialog(null);
+            if (file != null) {
+                try {
+                    reportsService.exportStudentSummaryPdf(reportData, file);
+                    showInfo("Export Successful", "Student summary exported to:\n" + file.getAbsolutePath());
+                } catch (Exception e) {
+                    showError("Export Error", "Could not export Student Summary as PDF.\n" + e.getMessage());
+                }
+            }
+        });
     }
 
     public void handleFollowUpReport(ActionEvent event) {
