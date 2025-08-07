@@ -1,141 +1,116 @@
 package com.cole.Service;
 
-import java.sql.*;
-import java.util.logging.Logger;
-import java.util.logging.Level;
-
 import com.cole.util.DBUtil;
+import java.sql.*;
 
 public class GraduationService {
 
-    private static final Logger logger = Logger.getLogger(GraduationService.class.getName());
-
-    /**
-     * Checks if students have passed all modules and updates their graduation flags accordingly.
-     * This method connects to the database, retrieves student data, checks module pass status,
-     * and updates the graduation flags in the 'students_to_graduate' table.
-     */
+    // Call this to check and update all graduation flags and statuses
     public void checkAndUpdateGraduationFlags() {
         try (Connection conn = DBUtil.getConnection()) {
             String studentQuery = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, slp.name AS slp_course " +
                                   "FROM students s JOIN slps slp ON s.current_slp_id = slp.slp_id";
-            // NOTE: Ensure 'slps' is the correct table name in your database schema. If not, replace 'slps' with the correct table name.
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(studentQuery)) {
                 while (rs.next()) {
                     int studentId = rs.getInt("student_id");
                     String slpCourse = rs.getString("slp_course");
                     if (hasPassedAllModules(conn, studentId)) {
-                        logger.info("Student " + studentId + " passed all modules. Flagging for graduation.");
                         flagStudent(conn, rs, slpCourse);
                     } else {
-                        logger.info("Student " + studentId + " has not passed all modules. Removing graduation flag if exists.");
                         unflagStudent(conn, studentId);
                     }
                 }
             }
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error checking/updating graduation flags", e);
+            e.printStackTrace();
         }
     }
 
     /**
      * Checks if a student has passed all their modules.
-     * @param conn the database connection
-     * @param studentId the ID of the student to check
-     * @return true if the student has passed all modules, false otherwise
-     * @throws SQLException if a database access error occurs
+     * Formative must pass, summative must pass, if summative failed then supplementary must pass.
      */
     private boolean hasPassedAllModules(Connection conn, int studentId) throws SQLException {
-       String query = "SELECT sm.module_id, m.name AS module_name, sm.formative, sm.summative, sm.supplementary, m.pass_rate " +
+        String query = "SELECT sm.module_id, m.name AS module_name, sm.formative, sm.summative, sm.supplementary, m.pass_rate " +
                        "FROM student_modules sm JOIN modules m ON sm.module_id = m.module_id " +
                        "WHERE sm.student_id = ?";
         boolean hasModules = false;
-        boolean allPassed = true;
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, studentId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     hasModules = true;
-                    String moduleName = rs.getString("module_name");
                     int passRate = rs.getInt("pass_rate");
-                    int formative = rs.getInt("formative");
-                    int summative = rs.getInt("summative");
-                    int supplementary = rs.getInt("supplementary");
+                    Double formative = rs.getObject("formative") != null ? rs.getDouble("formative") : null;
+                    Double summative = rs.getObject("summative") != null ? rs.getDouble("summative") : null;
+                    Double supplementary = rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : null;
 
-                    boolean formativePassed = formative >= passRate;
-                    boolean summativePassed = summative >= passRate;
-                    boolean supplementaryPassed = supplementary >= passRate;
-
-                    if (!formativePassed) {
-                        logger.info("Student " + studentId + " did NOT pass formative for module: " + moduleName +
-                                    " (Score: " + formative + ", Pass Rate: " + passRate + ")");
-                        allPassed = false;
-                    } else if (!summativePassed && !supplementaryPassed) {
-                        logger.info("Student " + studentId + " did NOT pass summative or supplementary for module: " + moduleName +
-                                    " (Summative: " + summative + ", Supplementary: " + supplementary + ", Pass Rate: " + passRate + ")");
-                        allPassed = false;
-                    } else {
-                        logger.info("Student " + studentId + " PASSED module: " + moduleName +
-                                    " (Formative: " + formative + ", Summative: " + summative + ", Supplementary: " + supplementary + ", Pass Rate: " + passRate + ")");
+                    // If formative or summative is missing, not passed
+                    if (formative == null || summative == null) {
+                        return false;
+                    }
+                    // Formative must pass
+                    if (formative < passRate) {
+                        return false;
+                    }
+                    // Summative must pass, unless supplementary is a pass
+                    if (summative < passRate) {
+                        if (supplementary == null || supplementary < passRate) {
+                            return false;
+                        }
                     }
                 }
             }
         }
-        if (!hasModules) {
-            logger.info("Student " + studentId + " is not enrolled in any modules.");
-            return false;
-        }
-        return allPassed;
+        return hasModules;
     }
 
-    /**
-     * Flags a student for graduation by inserting their details into the 'students_to_graduate' table.
-     * @param conn the database connection
-     * @param rs the ResultSet containing student data
-     * @param slpCourse the SLP course of the student
-     * @throws SQLException if a database access error occurs
-     */
+    // Insert into students_to_graduate and update status
     private void flagStudent(Connection conn, ResultSet rs, String slpCourse) throws SQLException {
+        String studentNumber = rs.getString("student_number");
+        String firstName = rs.getString("first_name");
+        String lastName = rs.getString("last_name");
+        String email = rs.getString("email");
+        String phone = rs.getString("phone");
         int studentId = rs.getInt("student_id");
-        String checkQuery = "SELECT 1 FROM students_to_graduate WHERE student_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(checkQuery)) {
-            ps.setInt(1, studentId);
-            try (ResultSet checkRs = ps.executeQuery()) {
-                if (checkRs.next()) {
-                    logger.info("Student " + studentId + " already flagged for graduation.");
-                    return;
-                }
-            }
-        }
-        String insertQuery = "INSERT INTO students_to_graduate (student_id, student_number, first_name, last_name, slp_course, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = conn.prepareStatement(insertQuery)) {
-            ps.setInt(1, studentId);
-            ps.setString(2, rs.getString("student_number"));
-            ps.setString(3, rs.getString("first_name"));
-            ps.setString(4, rs.getString("last_name"));
-            ps.setString(5, slpCourse);
-            ps.setString(6, rs.getString("email"));
-            ps.setString(7, rs.getString("phone"));
+        if (studentNumber == null || firstName == null || lastName == null || slpCourse == null) return;
+        String insertSql = "INSERT OR IGNORE INTO students_to_graduate (student_number, first_name, last_name, slp_course, email, phone, transcript_requested) VALUES (?, ?, ?, ?, ?, ?, 0)";
+        try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
+            ps.setString(1, studentNumber);
+            ps.setString(2, firstName);
+            ps.setString(3, lastName);
+            ps.setString(4, slpCourse);
+            ps.setString(5, email);
+            ps.setString(6, phone);
             ps.executeUpdate();
-            logger.info("Student " + studentId + " flagged for graduation.");
+        }
+        // Update student status to 'Graduated'
+        try (PreparedStatement ps = conn.prepareStatement("UPDATE students SET status = 'Graduated' WHERE student_id = ?")) {
+            ps.setInt(1, studentId);
+            ps.executeUpdate();
         }
     }
 
-    /**
-     * Unflags a student for graduation by deleting their entry from the 'students_to_graduate' table.
-     * @param conn the database connection
-     * @param studentId the ID of the student to unflag
-     * @throws SQLException if a database access error occurs
-     */
+    // Remove from students_to_graduate and revert status
     private void unflagStudent(Connection conn, int studentId) throws SQLException {
-        String deleteQuery = "DELETE FROM students_to_graduate WHERE student_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(deleteQuery)) {
+        String studentNumber = null;
+        try (PreparedStatement ps = conn.prepareStatement("SELECT student_number FROM students WHERE student_id = ?")) {
             ps.setInt(1, studentId);
-            int rows = ps.executeUpdate();
-            if (rows > 0) {
-                logger.info("Student " + studentId + " unflagged for graduation.");
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) studentNumber = rs.getString("student_number");
             }
+        }
+        if (studentNumber != null) {
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM students_to_graduate WHERE student_number = ?")) {
+                ps.setString(1, studentNumber);
+                ps.executeUpdate();
+            }
+        }
+        // Optionally set status back to 'Active'
+        try (PreparedStatement ps = conn.prepareStatement("UPDATE students SET status = 'Active' WHERE student_id = ?")) {
+            ps.setInt(1, studentId);
+            ps.executeUpdate();
         }
     }
 }
