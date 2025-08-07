@@ -20,9 +20,7 @@ public class DashboardService {
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (Exception e) {
             logger.error("Failed to get student count", e);
         }
@@ -34,15 +32,29 @@ public class DashboardService {
      * @return Graduated count, or -1 if error occurs.
      */
     public int getGraduatedCount() {
-        String sql = "SELECT COUNT(*) FROM students WHERE status = 'Graduated'";
+        String sql = "SELECT COUNT(*) FROM students_to_graduate";
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (Exception e) {
             logger.error("Failed to get graduated count", e);
+        }
+        return -1;
+    }
+
+    /**
+     * Gets the number of active students.
+     * @return Active student count, or -1 if error occurs.
+     */
+    public int getActiveStudentCount() {
+        String sql = "SELECT COUNT(*) FROM students WHERE status = 'Active'";
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) {
+            logger.error("Failed to get active student count", e);
         }
         return -1;
     }
