@@ -1004,7 +1004,7 @@ public class VirtualRecordCardController {
             showError("Error saving exam result", e.getMessage());
         }
 
-        // After updating marks:
+        // After updating marks or student details:
         GraduationService graduationService = new GraduationService();
         graduationService.checkAndUpdateGraduationFlags();
 
