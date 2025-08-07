@@ -15,7 +15,7 @@ public class DashboardHomeController {
     private static final Logger logger = LoggerFactory.getLogger(DashboardHomeController.class);
     private final DashboardService dashboardService = new DashboardService();
 
-    @FXML private Label studentCountLabel;
+    @FXML private Label activeStudentsLabel;
     @FXML private Label upcomingGraduationsLabel;
 
     /**
@@ -32,33 +32,48 @@ public class DashboardHomeController {
      * Updates the dashboard labels with the retrieved values.
      * Shows error messages if statistics cannot be loaded.
      */
-    private void loadDashboardStats() {
+    public void loadDashboardStats() {
         Task<int[]> task = new Task<>() {
             @Override
             protected int[] call() {
                 int studentCount = dashboardService.getStudentCount();
                 int graduatedCount = dashboardService.getGraduatedCount();
-                return new int[] { studentCount, graduatedCount };
+                int activeCount = dashboardService.getActiveStudentCount();
+                return new int[] { studentCount, graduatedCount, activeCount };
             }
         };
         task.setOnSucceeded(e -> {
             int[] stats = task.getValue();
             if (stats[0] >= 0) {
-                studentCountLabel.setText(stats[0] + " Students");
+                activeStudentsLabel.setText(stats[0] + " Students");
             } else {
-                studentCountLabel.setText("Error loading stats.");
+                activeStudentsLabel.setText("Error loading stats.");
             }
             if (stats[1] >= 0) {
-                upcomingGraduationsLabel.setText(stats[1] + " Graduates");
+                upcomingGraduationsLabel.setText(stats[1] + " Graduating");
             } else {
                 upcomingGraduationsLabel.setText("Error loading stats.");
+            }
+            if (stats[2] >= 0) {
+                activeStudentsLabel.setText(stats[2] + " Active");
+            } else {
+                activeStudentsLabel.setText("Error loading stats.");
             }
         });
         task.setOnFailed(e -> {
             logger.error("Failed to load dashboard stats", task.getException());
-            studentCountLabel.setText("Error loading stats.");
+            activeStudentsLabel.setText("Error loading stats.");
             upcomingGraduationsLabel.setText("Error loading stats.");
+            activeStudentsLabel.setText("Error loading stats.");
         });
         new Thread(task).start();
+    }
+
+    /**
+     * Refreshes the dashboard statistics.
+     * This method can be called to reload the statistics manually.
+     */
+    public void refreshDashboard() {
+        loadDashboardStats();
     }
 }
