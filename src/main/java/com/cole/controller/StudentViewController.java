@@ -1,17 +1,22 @@
 package com.cole.controller;
 
 import java.sql.Statement;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.cole.Service.StudentReportsService;
 import com.cole.model.Student;
+import com.cole.model.StudentReportData;
 import com.cole.util.DBUtil;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -88,10 +93,8 @@ public class StudentViewController {
                         return true;
                     }
                     String lowerCaseFilter = newValue.toLowerCase();
-                    // Search by student number, first name, last name, or SLP name
+                    // Filter by student number or SLP (case-insensitive)
                     if (student.getStudentNumber().toLowerCase().contains(lowerCaseFilter)) {
-                        return true;
-                    } else if ((student.getFirstName() + " " + student.getLastName()).toLowerCase().contains(lowerCaseFilter)) {
                         return true;
                     } else if (student.getSlp().toLowerCase().contains(lowerCaseFilter)) {
                         return true;
@@ -104,15 +107,71 @@ public class StudentViewController {
         // Add double-click event to open virtual record card
         studentTable.setRowFactory(tv -> {
             TableRow<Student> row = new TableRow<>();
+
+            // Double-click to open virtual record card
             row.setOnMouseClicked(event -> {
                 if (!row.isEmpty() && event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
                     Student clickedStudent = row.getItem();
                     openVirtualRecordCard(clickedStudent);
                 }
             });
+
+            // Context menu for right-click actions
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem generateReportItem = new MenuItem("Generate Report");
+            generateReportItem.setOnAction(event -> {
+                Student selectedStudent = row.getItem();
+                if (selectedStudent != null) {
+                    generateStudentReport(selectedStudent.getStudentNumber());
+                }
+            });
+            contextMenu.getItems().add(generateReportItem);
+            row.setContextMenu(contextMenu);
+
             return row;
         });
     }
+
+    /**
+     * Generates a report for the selected student.
+     * @param studentNumber The student number of the selected student.
+     */
+    private void generateStudentReport(String studentNumber) {
+        
+        try{
+            // Get the report data using your service
+            StudentReportsService reportsService = new StudentReportsService();
+            StudentReportData reportData = reportsService.getStudentReportData(studentNumber);
+            if(reportData == null){
+                showError("Report Generation Error", "No data found for student number: " + studentNumber);
+                return;
+            }
+
+            //Show a file chooser to save the report
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Save Student Report");    
+            fileChooser.getExtensionFilters().add(
+                new javafx.stage.FileChooser.ExtensionFilter("PDF Files", "*.pdf")
+                );
+            fileChooser.setInitialFileName("Student_Report_" + studentNumber + ".pdf");
+            java.io.File file = fileChooser.showSaveDialog(studentTable.getScene().getWindow());
+            if(file != null){
+                // Call the service to generate the report
+                reportsService.exportStudentSummaryPdf(reportData, file);
+                javafx.application.Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Report Generated");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Report generated successfully: " + file.getAbsolutePath());
+                    alert.showAndWait();
+                });
+            }
+        } catch (Exception e) {
+            logger.error("Failed to generate report for student number: " + studentNumber, e);
+            showError("Report Generation Error", "Failed to generate report for student number: " + studentNumber + "\n" + e.getMessage());
+        }
+    }
+
     /**
      * Opens the Virtual Record Card window for the selected student.
      * @param student The student to display in the record card.
@@ -123,12 +182,12 @@ public class StudentViewController {
             Parent root = loader.load();
             VirtualRecordCardController controller = loader.getController();
             controller.setStudent(student);
-            // Set callback to refresh student list after changes (e.g., delete)
+            // Set callback to refresh student list after changes (e.g., delete or status change)
             controller.setRefreshCallback(() -> loadStudents());
             Stage stage = new Stage();
             stage.setTitle("Virtual Record Card - " + student.getFirstName() + " " + student.getLastName());
             stage.setScene(new Scene(root));
-            stage.centerOnScreen(); // <-- Ensure this line is present
+            stage.centerOnScreen();
             stage.show();
         } catch (Exception e) {
             logger.error("Failed to open Virtual Record Card", e);
@@ -143,7 +202,7 @@ public class StudentViewController {
     private void loadStudents() {
         studentList.clear();
 
-        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, sl.name AS slp_name, s.status , s.enrollment_date " +
+        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, sl.name AS slp_name, s.status, s.enrollment_date " +
                      "FROM students s " +
                      "LEFT JOIN slps sl ON s.current_slp_id = sl.slp_id " +
                      "ORDER BY s.enrollment_date DESC";
@@ -159,11 +218,12 @@ public class StudentViewController {
                     rs.getString("last_name"),
                     rs.getString("email"),
                     rs.getString("phone"),
-                    rs.getString("slp_name"), // Use SLP name instead of ID
+                    rs.getString("slp_name"),
                     rs.getString("status"),
-                    rs.getString("enrollment_date") // Ensure this matches your Student constructor
+                    rs.getString("enrollment_date")
                 ));
             }
+            studentTable.setItems(studentList);
         } catch (SQLException e) {
             logger.error("Error loading students", e);
             showError("Error loading students", e.getMessage());
