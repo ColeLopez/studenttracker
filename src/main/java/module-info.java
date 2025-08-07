@@ -7,6 +7,7 @@ module com.cole {
     requires org.slf4j;
     requires java.desktop;
     requires jakarta.mail;
+    requires org.apache.pdfbox;
 
     opens com.cole to javafx.fxml;
     opens com.cole.controller to javafx.fxml;
