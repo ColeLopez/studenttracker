@@ -16,7 +16,7 @@
                 <Label text="👥" textFill="#80d0d8">
                     <font><Font size="48.0"/></font>
                 </Label>
-                <Label fx:id="studentCountLabel" text="0 Students" textFill="WHITE"
+                <Label fx:id="activeStudentsLabel" text="0 Students" textFill="WHITE"
                        style="-fx-font-size: 20; -fx-font-weight: Bold;" />
             </children>
         </VBox>
