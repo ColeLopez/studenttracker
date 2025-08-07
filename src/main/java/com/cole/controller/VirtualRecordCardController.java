@@ -456,6 +456,15 @@ public class VirtualRecordCardController {
                 logger.error("Error updating student", e);
                 showError("Error updating student", e.getMessage());
             }
+
+            // Always check graduation flags after editing student
+            GraduationService graduationService = new GraduationService();
+            graduationService.checkAndUpdateGraduationFlags();
+
+            // Refresh parent view if callback is set
+            if (refreshCallback != null) {
+                refreshCallback.run();
+            }
         }
     }
 
@@ -999,8 +1008,10 @@ public class VirtualRecordCardController {
         GraduationService graduationService = new GraduationService();
         graduationService.checkAndUpdateGraduationFlags();
 
-        // Optionally, notify GraduatesController to refresh if open
-        // (You may use an observer pattern or static reference if needed)
+        // Refresh parent view if callback is set
+        if (refreshCallback != null) {
+            refreshCallback.run();
+        }
     }
 
     @FXML
