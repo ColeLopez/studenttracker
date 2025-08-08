@@ -22,8 +22,9 @@
           </Menu>
           <Menu mnemonicParsing="false" text="Menu">
             <items>
+              <MenuItem mnemonicParsing="false" onAction="#handleDashboard" text="Dashboard" />
               <MenuItem mnemonicParsing="false" onAction="#handleViewStudents" text="View Students" />
-                  <MenuItem mnemonicParsing="false" onAction="#handleManageGraduates" text="Graduation Tracker" />
+              <MenuItem mnemonicParsing="false" onAction="#handleManageGraduates" text="Graduation Tracker" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="SLPs">
