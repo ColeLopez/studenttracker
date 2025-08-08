@@ -124,7 +124,8 @@ public final class DBInit {
             "transcript_requested INTEGER DEFAULT 0, " +
             "date_flagged TEXT DEFAULT CURRENT_TIMESTAMP, " +
             "FOREIGN KEY (student_id) REFERENCES students(student_id)" +
-            ");"
+            ");",
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_to_graduate_student_id ON students_to_graduate(student_id);"
         };
 
         // Execute schema statements
