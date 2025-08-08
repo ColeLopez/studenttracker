@@ -74,16 +74,25 @@ public class GraduationService {
         String email = rs.getString("email");
         String phone = rs.getString("phone");
         int studentId = rs.getInt("student_id");
-        if (studentNumber == null || firstName == null || lastName == null || slpCourse == null) return;
-        String insertSql = "INSERT OR IGNORE INTO students_to_graduate (student_number, first_name, last_name, slp_course, email, phone, transcript_requested) VALUES (?, ?, ?, ?, ?, ?, 0)";
+        if (studentNumber == null || firstName == null || lastName == null || slpCourse == null) {
+            System.out.println("flagStudent: Required field is null, skipping for studentId=" + studentId);
+            return;
+        }
+        System.out.println("flagStudent: Adding " + studentNumber + " to students_to_graduate");
+        String insertSql = "INSERT OR IGNORE INTO students_to_graduate (student_id, student_number, first_name, last_name, slp_course, email, phone, transcript_requested) VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
         try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
-            ps.setString(1, studentNumber);
-            ps.setString(2, firstName);
-            ps.setString(3, lastName);
-            ps.setString(4, slpCourse);
-            ps.setString(5, email);
-            ps.setString(6, phone);
-            ps.executeUpdate();
+            ps.setInt(1, studentId);
+            ps.setString(2, studentNumber);
+            ps.setString(3, firstName);
+            ps.setString(4, lastName);
+            ps.setString(5, slpCourse);
+            ps.setString(6, email);
+            ps.setString(7, phone);
+            int rows = ps.executeUpdate();
+            System.out.println("flagStudent: Inserted rows = " + rows + " for student_number=" + studentNumber);
+            if (rows == 0) {
+                System.out.println("flagStudent: Insert was ignored or failed for student_number=" + studentNumber);
+            }
         }
         // Update student status to 'Graduated'
         try (PreparedStatement ps = conn.prepareStatement("UPDATE students SET status = 'Graduated' WHERE student_id = ?")) {
