@@ -141,6 +141,16 @@ public class DashboardController {
     }
 
     /**
+     * Handles the action to view the dashboard home when the user clicks the corresponding button.
+     * Switches the center content to the Dashboard Home view.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleDashboard(ActionEvent event) {
+        setCenterContent("/fxml/dashboardHome.fxml");
+    }
+
+    /**
      * Handles the action to view students when the user clicks the corresponding button.
      * Switches the center content to the Student View.
      * @param event ActionEvent from the UI
