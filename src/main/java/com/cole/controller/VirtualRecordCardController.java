@@ -6,8 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.cole.Service.GraduationService;
+import com.cole.Service.StudentReportsService;
 import com.cole.model.Student;
 import com.cole.model.StudentModule;
+import com.cole.model.StudentReportData;
 import com.cole.util.DBUtil;
 
 import javafx.beans.property.SimpleBooleanProperty;
@@ -32,23 +34,19 @@ import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Controller for the Virtual Record Card, handling student details, exam results, notes, and follow-ups.
+ */
 public class VirtualRecordCardController {
-    /**
-     * Callback to refresh the parent student view after changes (e.g., delete).
-     */
-    private Runnable refreshCallback;
+    @FXML
+    private Button handleStudentReport;
 
-    /**
-     * Set a callback to be run after student data changes (e.g., after delete).
-     */
-    /**
-     * Sets a callback to be run after student data changes (e.g., after delete).
-     * @param callback the callback to run
-     */
+
+    /** Callback to refresh the parent student view after changes (e.g., delete). */
     public void setRefreshCallback(Runnable callback) {
         this.refreshCallback = callback;
     }
-    // --- Editable Notes and Follow-Up Section ---
+
     // Note model
     public static class Note {
         private final int id;
@@ -68,7 +66,7 @@ public class VirtualRecordCardController {
         @Override public String toString() { return getText() + " [" + dateAdded + "]"; }
     }
 
-    // FollowUp model
+    // Follow-up model
     public static class FollowUp {
         private final int id;
         private final javafx.beans.property.SimpleStringProperty dueDate;
@@ -93,15 +91,17 @@ public class VirtualRecordCardController {
         public javafx.beans.property.BooleanProperty completedProperty() { return completed; }
     }
 
-    // Editable cell for exam type columns
-    /**
-     * Editable cell for exam type columns, with color coding and edit restrictions.
-     */
+    // EditableDoubleCell for exam results
     public static class EditableDoubleCell extends javafx.scene.control.TableCell<StudentModule, Double> {
         private final javafx.scene.control.TextField textField = new javafx.scene.control.TextField();
         private final String examType;
         private final VirtualRecordCardController controller;
 
+        /**
+         * Constructor for EditableDoubleCell.
+         * @param examType The type of exam (e.g., "formative", "summative", "supplementary").
+         * @param controller The controller instance to handle saving results.
+         */
         public EditableDoubleCell(String examType, VirtualRecordCardController controller) {
             this.examType = examType;
             this.controller = controller;
@@ -111,6 +111,9 @@ public class VirtualRecordCardController {
             });
         }
 
+        /**
+         * Starts editing the cell, setting up the text field and checking edit permissions.
+         */
         @Override
         public void startEdit() {
             StudentModule sm = getStudentModule();
@@ -124,6 +127,9 @@ public class VirtualRecordCardController {
             textField.requestFocus();
         }
 
+        /**
+         * Cancels the edit, reverting to the original text.
+         */
         @Override
         public void cancelEdit() {
             super.cancelEdit();
@@ -131,6 +137,11 @@ public class VirtualRecordCardController {
             setContentDisplay(ContentDisplay.TEXT_ONLY);
         }
 
+        /**
+         * Updates the item in the cell, applying color coding based on exam type and pass rate.
+         * @param item The new item to display in the cell.
+         * @param empty Whether the cell is empty.
+         */
         @Override
         public void updateItem(Double item, boolean empty) {
             super.updateItem(item, empty);
@@ -165,6 +176,23 @@ public class VirtualRecordCardController {
             }
         }
 
+        /**
+         * Shows an error dialog with the given title and message.
+         * @param title The title of the error dialog.
+         * @param message The error message to display.
+         */
+        private void showError(String title, String message) {
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+        }
+
+        /**
+         * Commits the edit with validation and saves the result.
+         * @param newValue The new value to commit.
+         */
         @Override
         public void commitEdit(Double newValue) {
             StudentModule sm = getStudentModule();
@@ -292,9 +320,47 @@ public class VirtualRecordCardController {
             refreshCallback.run();
         }
     }
+
+    /**
+     * Shows an error dialog with the given title and message.
+     * @param title The title of the error dialog.
+     * @param message The error message to display.
+     */
+    @FXML
+private void handleStudentReport() {
+    if (selectedStudent == null) {
+        showError("No student selected", "Please select a student to export.");
+        return;
+    }
+
+    // Prompt user for file location
+    javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+    fileChooser.setTitle("Export Student Report");
+    fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+    fileChooser.setInitialFileName(selectedStudent.getStudentNumber() + "_record_card.pdf");
+    java.io.File file = fileChooser.showSaveDialog(null);
+    if (file == null) return;
+
+    // Gather all data for the report using your service
+    StudentReportsService reportsService = new StudentReportsService();
+    StudentReportData reportData = reportsService.getStudentReportData(selectedStudent.getStudentNumber());
+
+    if (reportData == null) {
+        showError("Export Failed", "Could not gather student data for export.");
+        return;
+    }
+
+    try {
+        reportsService.exportStudentSummaryPdf(reportData, file);
+    } catch (Exception e) {
+        showError("Export Failed", e.getMessage());
+    }
+}
     
     /**
-     * Handles editing the selected student's details.
+     * Shows an error dialog with the given title and message.
+     * @param title The title of the error dialog.
+     * @param message The error message to display.
      */
     @FXML
     private void handleEditStudent() {
@@ -974,12 +1040,6 @@ public class VirtualRecordCardController {
      * @param examType The type of exam ("formative", "summative", "supplementary").
      * @param value The new value to save.
      */
-    /**
-     * Saves the exam result for a given student module and exam type to the database.
-     * @param sm The StudentModule object.
-     * @param examType The type of exam ("formative", "summative", "supplementary").
-     * @param value The new value to save.
-     */
     public void saveExamResult(StudentModule sm, String examType, Double value) {
         if (sm == null || examType == null || value == null) return;
         String column;
@@ -1035,4 +1095,6 @@ public class VirtualRecordCardController {
             supplementaryColumn.setEditable(true);
         }
     }
+
+    private Runnable refreshCallback;
 }
