@@ -8,6 +8,8 @@ module com.cole {
     requires java.desktop;
     requires jakarta.mail;
     requires org.apache.pdfbox;
+    requires org.apache.poi.poi;
+    requires org.apache.poi.ooxml;
 
     opens com.cole to javafx.fxml;
     opens com.cole.controller to javafx.fxml;
