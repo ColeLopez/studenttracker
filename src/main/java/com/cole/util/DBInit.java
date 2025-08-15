@@ -49,9 +49,12 @@ public final class DBInit {
             "student_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "student_number TEXT UNIQUE NOT NULL, " +
             "first_name TEXT NOT NULL, " +
+            "second_name TEXT NOT NULL, " + // NEW
             "last_name TEXT NOT NULL, " +
+            "id_number TEXT UNIQUE, " +     // NEW
             "email TEXT, " +
             "phone TEXT, " +
+            "branch TEXT, " +               // NEW
             "enrollment_date TEXT, " +
             "current_slp_id INTEGER, " +
             "status TEXT, " +
@@ -117,10 +120,13 @@ public final class DBInit {
             "student_id INTEGER NOT NULL, " +
             "student_number TEXT NOT NULL, " +
             "first_name TEXT NOT NULL, " +
+            "second_name TEXT, " +
             "last_name TEXT NOT NULL, " +
+            "id_number TEXT NOT NULL, " +
             "slp_course TEXT NOT NULL, " +
             "email TEXT, " +
             "phone TEXT, " +
+            "branch TEXT, " +
             "transcript_requested INTEGER DEFAULT 0, " +
             "date_flagged TEXT DEFAULT CURRENT_TIMESTAMP, " +
             "FOREIGN KEY (student_id) REFERENCES students(student_id)" +
