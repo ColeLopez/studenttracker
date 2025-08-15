@@ -39,9 +39,11 @@
               <columns>
                 <TableColumn fx:id="numberColumn" text="Student Number" />
                 <TableColumn fx:id="nameColumn" text="Student Name" />
+                  <TableColumn fx:id="idNumberColumn" text="ID Number" />
                   <TableColumn fx:id="slpColumn" text="SLP Course" />
                   <TableColumn fx:id="emailColumn" text="Email" />
                   <TableColumn fx:id="phoneColumn" text="Phone" />
+                  <TableColumn fx:id="branchColumn" text="Branch" />
                   <TableColumn fx:id="transcriptColumn" text="Transcript Requested" />
               </columns>
                <columnResizePolicy>
