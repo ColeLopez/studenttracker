@@ -60,7 +60,12 @@ public class StudentViewController {
     @FXML
     private TableColumn<Student, String> statusColumn;
 
+    @FXML private TableColumn<Student, String> idNumberColumn;
+
+    @FXML private TableColumn<Student, String> branchColumn;
+
     private final ObservableList<Student> studentList = FXCollections.observableArrayList();
+    
     private FilteredList<Student> filteredStudents;
 
     @FXML
@@ -73,10 +78,10 @@ public class StudentViewController {
     @FXML
     private void initialize() {
         numberColumn.setCellValueFactory(cellData -> cellData.getValue().studentNumberProperty());
-        nameColumn.setCellValueFactory(cellData -> {
-            Student s = cellData.getValue();
-            return new javafx.beans.property.SimpleStringProperty(s.getFirstName() + " " + s.getLastName());
-        });
+        nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
+            cellData.getValue().getFirstName() + " " + cellData.getValue().getSecondName() + " " + cellData.getValue().getLastName()));
+        idNumberColumn.setCellValueFactory(cellData -> cellData.getValue().idNumberProperty());
+        branchColumn.setCellValueFactory(cellData -> cellData.getValue().branchProperty());
         emailColumn.setCellValueFactory(cellData -> cellData.getValue().emailProperty());
         phoneColumn.setCellValueFactory(cellData -> cellData.getValue().phoneNumberProperty());
         slpColumn.setCellValueFactory(cellData -> cellData.getValue().slpProperty());
@@ -202,7 +207,8 @@ public class StudentViewController {
     private void loadStudents() {
         studentList.clear();
 
-        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, sl.name AS slp_name, s.status, s.enrollment_date " +
+        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.second_name, s.last_name, " +
+                     "s.id_number, s.email, s.phone, s.branch, sl.name AS slp_name, s.status, s.enrollment_date " +
                      "FROM students s " +
                      "LEFT JOIN slps sl ON s.current_slp_id = sl.slp_id " +
                      "ORDER BY s.enrollment_date DESC";
@@ -211,17 +217,21 @@ public class StudentViewController {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                studentList.add(new Student(
+                Student student = new Student(
                     rs.getInt("student_id"),
                     rs.getString("student_number"),
                     rs.getString("first_name"),
+                    rs.getString("second_name"),
                     rs.getString("last_name"),
+                    rs.getString("id_number"),
                     rs.getString("email"),
                     rs.getString("phone"),
+                    rs.getString("branch"),
                     rs.getString("slp_name"),
                     rs.getString("status"),
                     rs.getString("enrollment_date")
-                ));
+                );
+                studentList.add(student);
             }
             studentTable.setItems(studentList);
         } catch (SQLException e) {
