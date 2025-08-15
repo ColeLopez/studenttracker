@@ -178,19 +178,6 @@ public class VirtualRecordCardController {
         }
 
         /**
-         * Shows an error dialog with the given title and message.
-         * @param title The title of the error dialog.
-         * @param message The error message to display.
-         */
-        private void showError(String title, String message) {
-            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.showAndWait();
-        }
-
-        /**
          * Commits the edit with validation and saves the result.
          * @param newValue The new value to commit.
          */
