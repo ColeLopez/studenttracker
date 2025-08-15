@@ -36,10 +36,10 @@ public class StudentReportsService {
      * @return Student object or null if not found
      */
     public Student getStudentByNumber(String studentNumber) {
-        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.last_name, s.email, s.phone, sl.name AS slp_name, s.status, s.enrollment_date " +
-                     "FROM students s " +
-                     "LEFT JOIN slps sl ON s.current_slp_id = sl.slp_id " +
-                     "WHERE LOWER(s.student_number) = LOWER(?)";
+        String sql = "SELECT s.student_id, s.student_number, s.first_name, s.second_name, s.last_name, s.id_number, s.branch, s.email, s.phone, sl.name AS slp_name, s.status, s.enrollment_date " +
+                        "FROM students s " +
+                        "LEFT JOIN slps sl ON s.current_slp_id = sl.slp_id " +
+                        "WHERE LOWER(s.student_number) = LOWER(?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, studentNumber);
@@ -49,9 +49,12 @@ public class StudentReportsService {
                         rs.getInt("student_id"),
                         rs.getString("student_number"),
                         rs.getString("first_name"),
+                        rs.getString("second_name"),
                         rs.getString("last_name"),
+                        rs.getString("id_number"),
                         rs.getString("email"),
                         rs.getString("phone"),
+                        rs.getString("branch"),
                         rs.getString("slp_name"),
                         rs.getString("status"),
                         rs.getString("enrollment_date")
@@ -247,7 +250,7 @@ public class StudentReportsService {
             Student s = reportData.getStudent();
             contentStream.setFont(PDType1Font.HELVETICA, 12);
             String[][] info = {
-                {"Name", s.getFirstName() + " " + s.getLastName()},
+                {"Name", s.getFirstName() + " " + s.getSecondName() + " " + s.getLastName()},
                 {"Student Number", s.getStudentNumber()},
                 {"Email", s.getEmail()},
                 {"Phone", s.getPhoneNumber()},
