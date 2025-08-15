@@ -59,6 +59,7 @@
                 <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
                         <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
                         <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
+                        <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
@@ -68,6 +69,7 @@
                 <Label fx:id="phoneLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Phone:" GridPane.columnIndex="1" />
                 <Label fx:id="slpLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="SLP" GridPane.columnIndex="2" />
                 <Label fx:id="statusLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Status" GridPane.columnIndex="3" />
+                        <Label fx:id="branchLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Branch" GridPane.columnIndex="4" />
               </children>
               <padding>
                 <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
