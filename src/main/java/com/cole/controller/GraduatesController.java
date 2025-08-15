@@ -27,7 +27,6 @@ import javafx.concurrent.Task;
 public class GraduatesController {
     @FXML
     private Button bukRequestButton;
-
     @FXML
     private TableColumn<StudentToGraduate, String> numberColumn;
     @FXML
@@ -38,6 +37,9 @@ public class GraduatesController {
     private TableColumn<StudentToGraduate, String> emailColumn;
     @FXML
     private TableColumn<StudentToGraduate, String> phoneColumn;
+    @FXML private TableColumn<StudentToGraduate, String> secondNameColumn;
+    @FXML private TableColumn<StudentToGraduate, String> idNumberColumn;
+    @FXML private TableColumn<StudentToGraduate, String> branchColumn;
 
     @FXML
     private TableView<StudentToGraduate> graduationTable;
@@ -52,13 +54,13 @@ public class GraduatesController {
      */
     @FXML
     private void initialize() {
-        // Set up property bindings for all columns
         numberColumn.setCellValueFactory(cellData -> cellData.getValue().studentNumberProperty());
         nameColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getFullName()));
+        idNumberColumn.setCellValueFactory(cellData -> cellData.getValue().idNumberProperty());
+        branchColumn.setCellValueFactory(cellData -> cellData.getValue().branchProperty());
         slpColumn.setCellValueFactory(cellData -> cellData.getValue().slpCourseProperty());
         emailColumn.setCellValueFactory(cellData -> cellData.getValue().emailProperty());
         phoneColumn.setCellValueFactory(cellData -> cellData.getValue().phoneProperty());
-
         // Set up the checkbox cell for transcript requested
         transcriptColumn.setCellValueFactory(cellData -> cellData.getValue().transcriptRequestedProperty());
         transcriptColumn.setCellFactory(tc -> new CheckBoxTableCell<>());
@@ -97,7 +99,8 @@ public class GraduatesController {
      */
     public void loadGraduationList() {
         graduationList.clear();
-        String query = "SELECT * FROM students_to_graduate";
+        String query = "SELECT student_number, first_name, second_name, last_name, id_number, slp_course, email, phone, branch, transcript_requested " +
+                       "FROM students_to_graduate";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
@@ -105,10 +108,13 @@ public class GraduatesController {
                 StudentToGraduate student = new StudentToGraduate(
                         rs.getString("student_number"),
                         rs.getString("first_name"),
+                        rs.getString("second_name"),
                         rs.getString("last_name"),
+                        rs.getString("id_number"),
                         rs.getString("slp_course"),
                         rs.getString("email"),
                         rs.getString("phone"),
+                        rs.getString("branch"),
                         rs.getInt("transcript_requested") == 1
                 );
                 // Add listener to update DB when checkbox is toggled
