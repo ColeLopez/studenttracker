@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
  * Controller for the Virtual Record Card, handling student details, exam results, notes, and follow-ups.
  */
 public class VirtualRecordCardController {
+
     @FXML
     private Button handleStudentReport;
 
@@ -370,9 +371,12 @@ private void handleStudentReport() {
         }
         // Create dialog fields pre-filled with current values
         javafx.scene.control.TextField firstNameField = new javafx.scene.control.TextField(selectedStudent.getFirstName());
+        javafx.scene.control.TextField secondNameField = new javafx.scene.control.TextField(selectedStudent.getSecondName());   
         javafx.scene.control.TextField lastNameField = new javafx.scene.control.TextField(selectedStudent.getLastName());
+        javafx.scene.control.TextField idNumberField = new javafx.scene.control.TextField(selectedStudent.getIdNumber());
         javafx.scene.control.TextField emailField = new javafx.scene.control.TextField(selectedStudent.getEmail());
         javafx.scene.control.TextField phoneField = new javafx.scene.control.TextField(selectedStudent.getPhoneNumber());
+        javafx.scene.control.TextField branchField = new javafx.scene.control.TextField(selectedStudent.getBranch());
         // ComboBox for SLP
         javafx.scene.control.ComboBox<String> slpCombo = new javafx.scene.control.ComboBox<>();
         javafx.collections.ObservableList<String> slpOptions = FXCollections.observableArrayList();
@@ -407,16 +411,22 @@ private void handleStudentReport() {
         grid.setVgap(10);
         grid.add(new javafx.scene.control.Label("First Name:"), 0, 0);
         grid.add(firstNameField, 1, 0);
-        grid.add(new javafx.scene.control.Label("Last Name:"), 0, 1);
-        grid.add(lastNameField, 1, 1);
-        grid.add(new javafx.scene.control.Label("Email:"), 0, 2);
-        grid.add(emailField, 1, 2);
-        grid.add(new javafx.scene.control.Label("Phone:"), 0, 3);
-        grid.add(phoneField, 1, 3);
-        grid.add(new javafx.scene.control.Label("SLP:"), 0, 4);
-        grid.add(slpCombo, 1, 4);
-        grid.add(new javafx.scene.control.Label("Status:"), 0, 5);
-        grid.add(statusCombo, 1, 5);
+        grid.add(new javafx.scene.control.Label("Second Name:"), 0, 1);
+        grid.add(secondNameField, 1, 1);
+        grid.add(new javafx.scene.control.Label("Last Name:"), 0, 2);
+        grid.add(lastNameField, 1, 2);
+        grid.add(new javafx.scene.control.Label("ID Number:"), 0, 3);
+        grid.add(idNumberField, 1, 3);
+        grid.add(new javafx.scene.control.Label("Email:"), 0, 4);
+        grid.add(emailField, 1, 4);
+        grid.add(new javafx.scene.control.Label("Phone:"), 0, 5);
+        grid.add(phoneField, 1, 5);
+        grid.add(new javafx.scene.control.Label("SLP:"), 0, 6);
+        grid.add(slpCombo, 1, 6);
+        grid.add(new javafx.scene.control.Label("Branch:"), 0, 7);
+        grid.add(branchField, 1, 7);
+        grid.add(new javafx.scene.control.Label("Status:"), 0, 8);
+        grid.add(statusCombo, 1, 8);
 
         javafx.scene.control.Dialog<java.util.List<String>> dialog = new javafx.scene.control.Dialog<>();
         dialog.setTitle("Edit Student");
@@ -427,10 +437,13 @@ private void handleStudentReport() {
             if (dialogButton == javafx.scene.control.ButtonType.OK) {
                 return java.util.Arrays.asList(
                     firstNameField.getText(),
+                    secondNameField.getText(),
                     lastNameField.getText(),
+                    idNumberField.getText(),
                     emailField.getText(),
                     phoneField.getText(),
                     slpCombo.getSelectionModel().getSelectedItem(),
+                    branchField.getText(),
                     statusCombo.getSelectionModel().getSelectedItem()
                 );
             }
@@ -455,24 +468,30 @@ private void handleStudentReport() {
                     showError("Error updating student", "SLP not found in database.");
                     return;
                 }
-                String sql = "UPDATE students SET first_name = ?, last_name = ?, email = ?, phone = ?, current_slp_id = ?, status = ? WHERE student_id = ?";
+                String sql = "UPDATE students SET first_name = ?, second_name = ?, last_name = ?, id_number = ?, email = ?, phone = ?, branch = ?, current_slp_id = ?, status = ? WHERE student_id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setString(1, values.get(0));
-                    stmt.setString(2, values.get(1));
-                    stmt.setString(3, values.get(2));
-                    stmt.setString(4, values.get(3));
-                    stmt.setInt(5, newSlpId);
-                    stmt.setString(6, values.get(5));
-                    stmt.setInt(7, selectedStudent.getId());
+                    stmt.setString(1, values.get(0)); // first_name
+                    stmt.setString(2, values.get(1)); // second_name
+                    stmt.setString(3, values.get(2)); // last_name
+                    stmt.setString(4, values.get(3)); // id_number
+                    stmt.setString(5, values.get(4)); // email
+                    stmt.setString(6, values.get(5)); // phone
+                    stmt.setString(7, values.get(7)); // branch
+                    stmt.setInt(8, newSlpId);         // current_slp_id
+                    stmt.setString(9, values.get(8)); // status
+                    stmt.setInt(10, selectedStudent.getId()); // student_id
                     stmt.executeUpdate();
                 }
                 // Update local object using property setters
                 selectedStudent.firstNameProperty().set(values.get(0));
-                selectedStudent.lastNameProperty().set(values.get(1));
-                selectedStudent.emailProperty().set(values.get(2));
-                selectedStudent.phoneNumberProperty().set(values.get(3));
-                selectedStudent.slpProperty().set(values.get(4));
-                selectedStudent.statusProperty().set(values.get(5));
+                selectedStudent.secondNameProperty().set(values.get(1));
+                selectedStudent.lastNameProperty().set(values.get(2));
+                selectedStudent.idNumberProperty().set(values.get(3));
+                selectedStudent.emailProperty().set(values.get(4));
+                selectedStudent.phoneNumberProperty().set(values.get(5));
+                selectedStudent.slpProperty().set(values.get(6));
+                selectedStudent.branchProperty().set(values.get(7));
+                selectedStudent.statusProperty().set(values.get(8));
                 loadStudentDetails();
 
                 // If SLP changed, unlink old modules and link new ones, and add automated note
@@ -693,6 +712,7 @@ private void handleStudentReport() {
     @FXML private Label statusLabel;
     @FXML private Label emailLabel;
     @FXML private Label phoneLabel;
+    @FXML private Label branchLabel;
 
     private static final Logger logger = LoggerFactory.getLogger(VirtualRecordCardController.class);
 
@@ -859,12 +879,13 @@ private void handleStudentReport() {
             showError("No student selected", "Please select a student.");
             return;
         }
-        if (nameLabel != null) nameLabel.setText(selectedStudent.getFirstName() + " " + selectedStudent.getLastName());
-        if (studentNumberLabel != null) studentNumberLabel.setText(selectedStudent.getStudentNumber());
-        if (slpLabel != null) slpLabel.setText(selectedStudent.getSlp());
-        if (statusLabel != null) statusLabel.setText(selectedStudent.getStatus());
-        if (emailLabel != null) emailLabel.setText(selectedStudent.getEmail());
-        if (phoneLabel != null) phoneLabel.setText(selectedStudent.getPhoneNumber());
+        if (nameLabel != null) nameLabel.setText("Full Name: " + selectedStudent.getFirstName() + " " + selectedStudent.getSecondName() + " " + selectedStudent.getLastName());
+        if (studentNumberLabel != null) studentNumberLabel.setText("Student Number: " + selectedStudent.getStudentNumber());
+        if (slpLabel != null) slpLabel.setText("SLP: " + selectedStudent.getSlp());
+        if (statusLabel != null) statusLabel.setText("Status: " + selectedStudent.getStatus());
+        if (emailLabel != null) emailLabel.setText("Email: " + selectedStudent.getEmail());
+        if (phoneLabel != null) phoneLabel.setText("Phone: " + selectedStudent.getPhoneNumber());
+        if (branchLabel != null) branchLabel.setText("Branch: " + selectedStudent.getBranch());
     }
 
     /**
