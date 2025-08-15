@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cole.model.StudentReportData;
 import com.cole.Service.StudentReportsService;
+import com.cole.Service.GraduatesExportService;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -297,6 +298,19 @@ public class DashboardController {
     }
 
     public void handleGraduatesReport(ActionEvent event) {
-        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Graduates List");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        fileChooser.setInitialFileName("graduates.xlsx");
+        File file = fileChooser.showSaveDialog(null);
+        if (file == null) return;
+
+        GraduatesExportService exportService = new GraduatesExportService();
+        try {
+            exportService.exportGraduatesToExcel(file);
+            showInfo("Export Successful", "Graduates list exported to:\n" + file.getAbsolutePath());
+        } catch (Exception e) {
+            showError("Export Error", "Could not export graduates list.\n" + e.getMessage());
+        }
     }
 }
