@@ -32,7 +32,7 @@ public class GraduatesExportService {
             // --- Title Row ---
             Row titleRow = sheet.createRow(0);
             Cell titleCell = titleRow.createCell(0);
-            titleCell.setCellValue("SLP Data List for Graduation");
+            titleCell.setCellValue("SLP List for Graduation");
 
             // Title style: 16pt Aptos (or Calibri fallback) + border
             CellStyle titleStyle = workbook.createCellStyle();

@@ -82,7 +82,7 @@ public class GraduationService {
             return;
         }
         System.out.println("flagStudent: Adding " + studentNumber + " to students_to_graduate");
-        String insertSql = "INSERT OR IGNORE INTO students_to_graduate (student_id, student_number, first_name, second_name, last_name, id_number, branch, slp_course, email, phone, transcript_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
+        String insertSql = "INSERT OR IGNORE INTO students_to_graduate (student_id, student_number, first_name, second_name, last_name, id_number, slp_course, email, phone, branch, transcript_requested) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
         try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
             ps.setInt(1, studentId);
             ps.setString(2, studentNumber);
@@ -94,7 +94,6 @@ public class GraduationService {
             ps.setString(8, email);
             ps.setString(9, phone);
             ps.setString(10, branch);
-           
             int rows = ps.executeUpdate();
             System.out.println("flagStudent: Inserted rows = " + rows + " for student_number=" + studentNumber);
             if (rows == 0) {
