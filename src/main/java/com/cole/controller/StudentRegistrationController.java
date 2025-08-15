@@ -18,9 +18,12 @@ public class StudentRegistrationController {
 
     @FXML private TextField studentNumberField;
     @FXML private TextField firstNameField;
+    @FXML private TextField secondNameField;
     @FXML private TextField lastNameField;
+    @FXML private TextField idField;
     @FXML private TextField emailField;
     @FXML private TextField phoneField;
+    @FXML private TextField branchField;
     @FXML private DatePicker enrollmentDatePicker;
     @FXML private ComboBox<SLP> slpComboBox;
     @FXML private ComboBox<String> statusComboBox;
@@ -74,9 +77,12 @@ public class StudentRegistrationController {
     private void handleSave() {
         String studentNumber = studentNumberField.getText().trim();
         String firstName = firstNameField.getText().trim();
+        String secondName = secondNameField.getText().trim();
         String lastName = lastNameField.getText().trim();
+        String idNumber = idField.getText().trim();
         String email = emailField.getText().trim();
         String phone = phoneField.getText().trim();
+        String branch = branchField.getText().trim();
         LocalDate enrollmentDate = enrollmentDatePicker.getValue();
         SLP selectedSLP = slpComboBox.getSelectionModel().getSelectedItem();
         String status = statusComboBox.getSelectionModel().getSelectedItem();
@@ -93,27 +99,28 @@ public class StudentRegistrationController {
                 checkStmt.setString(1, studentNumber);
                 try (ResultSet rs = checkStmt.executeQuery()) {
                     if (rs.next()) {
-                        showError("Duplicate Entry", "Student with this number already exists.");
+                        showError("Duplicate Student", "A student with this number already exists.");
                         return;
                     }
                 }
             }
 
-            // Insert
-
             int newStudentId = -1;
             // Insert student and get generated ID
             try (PreparedStatement insertStmt = conn.prepareStatement(
-                    "INSERT INTO students (student_number, first_name, last_name, email, phone, enrollment_date, current_slp_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO students (student_number, first_name, second_name, last_name, id_number, email, phone, branch, enrollment_date, current_slp_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 insertStmt.setString(1, studentNumber);
                 insertStmt.setString(2, firstName);
-                insertStmt.setString(3, lastName);
-                insertStmt.setString(4, email);
-                insertStmt.setString(5, phone);
-                insertStmt.setString(6, enrollmentDate.toString());
-                insertStmt.setInt(7, selectedSLP.getId());
-                insertStmt.setString(8, status);
+                insertStmt.setString(3, secondName);
+                insertStmt.setString(4, lastName);
+                insertStmt.setString(5, idNumber);
+                insertStmt.setString(6, email);
+                insertStmt.setString(7, phone);
+                insertStmt.setString(8, branch);
+                insertStmt.setString(9, enrollmentDate.toString());
+                insertStmt.setInt(10, selectedSLP.getId());
+                insertStmt.setString(11, status);
                 insertStmt.executeUpdate();
                 try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -126,17 +133,13 @@ public class StudentRegistrationController {
             if (newStudentId != -1) {
                 SLPModuleService slpModuleService = new SLPModuleService();
                 for (Module module : slpModuleService.getModulesForSLP(selectedSLP.getId())) {
-                    try (PreparedStatement smInsert = conn.prepareStatement(
-                            "INSERT INTO student_modules (student_id, module_id, module_code, module_name, formative, summative, supplementary, received_book) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
-                        smInsert.setInt(1, newStudentId);
-                        smInsert.setInt(2, module.getId());
-                        smInsert.setString(3, module.getModuleCode());
-                        smInsert.setString(4, module.getName());
-                        smInsert.setInt(5, 0); // formative
-                        smInsert.setInt(6, 0); // summative
-                        smInsert.setInt(7, 0); // supplementary
-                        smInsert.setInt(8, 0); // received_book
-                        smInsert.executeUpdate();
+                    try (PreparedStatement linkStmt = conn.prepareStatement(
+                            "INSERT INTO student_modules (student_id, module_id, module_code, module_name) VALUES (?, ?, ?, ?)")) {
+                        linkStmt.setInt(1, newStudentId);
+                        linkStmt.setInt(2, module.getId());
+                        linkStmt.setString(3, module.getModuleCode());
+                        linkStmt.setString(4, module.getName());
+                        linkStmt.executeUpdate();
                     }
                 }
             }
@@ -178,9 +181,12 @@ public class StudentRegistrationController {
     private void clearForm() {
         studentNumberField.clear();
         firstNameField.clear();
+        secondNameField.clear();
         lastNameField.clear();
+        idField.clear();
         emailField.clear();
         phoneField.clear();
+        branchField.clear();
         enrollmentDatePicker.setValue(null);
         slpComboBox.getSelectionModel().clearSelection();
         statusComboBox.getSelectionModel().clearSelection();
