@@ -90,7 +90,7 @@
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
       </padding>
       <children>
-                <Button fx:id="handleStudentReport" mnemonicParsing="false" onAction="#handleStudentReport" style="-fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #eaf75eff, #c0c43dff); -fx-text-fill: white; -fx-background-radius: 8;" text="Export Student Report" HBox.hgrow="ALWAYS" />
+                <Button fx:id="handleStudentReport" mnemonicParsing="false" onAction="#handleStudentReport" style="-fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #4df7b0ff, #2bc95aff); -fx-text-fill: white; -fx-background-radius: 8;" text="Export Student Report" HBox.hgrow="ALWAYS" />
         <Button fx:id="handleEditStudent" mnemonicParsing="false" onAction="#handleEditStudent" style="-fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #845ef7, #5f3dc4); -fx-text-fill: white; -fx-background-radius: 8;" text="Edit Student" HBox.hgrow="ALWAYS" />
         <Button fx:id="handleDeleteStudent" mnemonicParsing="false" onAction="#handleDeleteStudent" style="-fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #fa5252, #e03131); -fx-text-fill: white; -fx-background-radius: 8;" text="Delete Student" HBox.hgrow="ALWAYS" />
         <Button fx:id="handleClose" mnemonicParsing="false" onAction="#handleClose" style="-fx-font-weight: bold; -fx-background-color: linear-gradient(to right, #868e96, #adb5bd); -fx-text-fill: white; -fx-background-radius: 8;" text="Close" HBox.hgrow="ALWAYS" />
