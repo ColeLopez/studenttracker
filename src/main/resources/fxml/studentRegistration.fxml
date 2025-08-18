@@ -57,20 +57,20 @@
                      <children>
                         <Label text="First Name:" />
                         <TextField fx:id="firstNameField" promptText="Enter First Name" GridPane.columnIndex="1" />
-                        <Label text="Last Name:" GridPane.rowIndex="1" />
-                        <TextField fx:id="lastNameField" promptText="Enter Last Name" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <Label text="Second Name:" GridPane.columnIndex="2" />
                         <TextField fx:id="secondNameField" promptText="Enter Second Name" GridPane.columnIndex="3" />
+                        <Label text="Last Name:" GridPane.rowIndex="1" />
+                        <TextField fx:id="lastNameField" promptText="Enter Last Name" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label text="ID Number:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <TextField fx:id="idField" promptText="Enter ID Number" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                         <Label text="Email:" GridPane.rowIndex="2" />
                         <TextField fx:id="emailField" promptText="Enter Email Address" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <TextField fx:id="idField" promptText="Enter ID Number" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                        <Label text="ID Number:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                         <Label text="Phone Number:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
                         <TextField fx:id="phoneField" promptText="Enter Phone Number" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                        <Label text="Enrollment Date:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                        <DatePicker fx:id="enrollmentDatePicker" promptText="Select Date" GridPane.columnIndex="3" GridPane.rowIndex="3" />
                         <Label text="Branch:" GridPane.rowIndex="3" />
                         <TextField fx:id="branchField" promptText="Enter Boston Branch" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <Label text="Enrollment Date:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                        <DatePicker fx:id="enrollmentDatePicker" promptText="Select Date" GridPane.columnIndex="3" GridPane.rowIndex="3" />
                      </children>
                   </GridPane>
                </children>
@@ -86,8 +86,8 @@
               </rowConstraints>
                <children>
                   <Label text="Current SLP:" />
-                  <Label text="Status:" GridPane.rowIndex="1" />
                   <ComboBox fx:id="slpComboBox" prefHeight="25.0" prefWidth="589.0" promptText="Select SLP" GridPane.columnIndex="1" />
+                  <Label text="Status:" GridPane.rowIndex="1" />
                   <ComboBox fx:id="statusComboBox" prefHeight="25.0" prefWidth="556.0" promptText="Select Student Status" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   
                </children>
