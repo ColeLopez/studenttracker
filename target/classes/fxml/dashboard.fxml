@@ -15,19 +15,45 @@
             <items>
                   <MenuItem mnemonicParsing="false" onAction="#handleStudentRegistration" text="Register Student" />
                   <SeparatorMenuItem mnemonicParsing="false" />
+                  <Menu mnemonicParsing="false" text="Reports">
+                    <items>
+                      <MenuItem mnemonicParsing="false" onAction="#handleStudentReport" text="Export Student Summary" />
+                        <MenuItem mnemonicParsing="false" onAction="#handleFollowUpReport" text="Export Follow-Up History" />
+                        <MenuItem mnemonicParsing="false" onAction="#handleGraduatesReport" text="Export Graduates List" />
+                    </items>
+                  </Menu>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <Menu mnemonicParsing="false" text="Tools">
+                    <items>
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <Menu mnemonicParsing="false" text="Admin">
+                          <items>
+                            <MenuItem mnemonicParsing="false" text="Manage Users" />
+                          </items>
+                        </Menu>
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" text="Theme Settings" />
+                        <SeparatorMenuItem mnemonicParsing="false" />
+                        <MenuItem mnemonicParsing="false" text="View Logs" />
+                    </items>
+                  </Menu>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" text="Backup Database" />
+                  <MenuItem mnemonicParsing="false" text="Restore Database" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="Logout" />
                   <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="Menu">
+          <Menu mnemonicParsing="false" text="Students">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#handleDashboard" text="Dashboard" />
               <MenuItem mnemonicParsing="false" onAction="#handleViewStudents" text="View Students" />
               <MenuItem mnemonicParsing="false" onAction="#handleManageGraduates" text="Graduation Tracker" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="SLPs">
+          <Menu mnemonicParsing="false" text="SLPs &amp; Modules">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#handleManageSLPs" text="Manage SLPs" />
               <MenuItem mnemonicParsing="false" onAction="#handleManageSLPModules" text="Link Modules to SLPs" />
@@ -50,29 +76,6 @@
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" text="Test Email Delivery" />
-              </items>
-            </Menu>
-            <Menu mnemonicParsing="false" text="Reports">
-              <items>
-                <MenuItem mnemonicParsing="false" onAction="#handleStudentReport" text="Export Student Summary" />
-                  <MenuItem mnemonicParsing="false" onAction="#handleFollowUpReport" text="Export Follow-Up History" />
-                  <MenuItem mnemonicParsing="false" onAction="#handleGraduatesReport" text="Export Graduates List" />
-              </items>
-            </Menu>
-            <Menu mnemonicParsing="false" text="Tools">
-              <items>
-                <MenuItem mnemonicParsing="false" text="Backup Database" />
-                  <MenuItem mnemonicParsing="false" text="Restore Database" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <Menu mnemonicParsing="false" text="Admin">
-                    <items>
-                      <MenuItem mnemonicParsing="false" text="Manage Users" />
-                    </items>
-                  </Menu>
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Theme Settings" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="View Logs" />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">
