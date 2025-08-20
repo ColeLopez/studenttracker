@@ -1050,6 +1050,7 @@ private void handleStudentReport() {
      */
     public void saveExamResult(StudentModule sm, String examType, Double value) {
         if (sm == null || examType == null || value == null) return;
+
         String column;
         switch (examType) {
             case "formative":
@@ -1060,6 +1061,7 @@ private void handleStudentReport() {
             default:
                 return;
         }
+
         String sql = "UPDATE student_modules SET " + column + " = ? WHERE student_id = ? AND module_id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -1072,9 +1074,12 @@ private void handleStudentReport() {
             showError("Error saving exam result", e.getMessage());
         }
 
-        // After updating marks or student details:
+        // Check graduation flags after updating marks
         GraduationService graduationService = new GraduationService();
         graduationService.checkAndUpdateGraduationFlags();
+
+        // Reload student details to reflect updated status
+        reloadStudentStatus();
 
         // Refresh parent view if callback is set
         if (refreshCallback != null) {
@@ -1105,4 +1110,27 @@ private void handleStudentReport() {
     }
 
     private Runnable refreshCallback;
+
+    private void reloadStudentStatus() {
+        if (selectedStudent == null) return;
+
+        String sql = "SELECT status FROM students WHERE student_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, selectedStudent.getId());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    selectedStudent.setStatus(rs.getString("status")); // Update the local object
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error reloading student status", e);
+            showError("Error reloading student status", e.getMessage());
+        }
+
+        // Update the status label in the UI
+        if (statusLabel != null) {
+            statusLabel.setText("Status: " + selectedStudent.getStatus());
+        }
+    }
 }
