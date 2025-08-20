@@ -75,6 +75,10 @@ public class Student {
         return slp.get();
     }
 
+    public String setStatus(String status) {
+        this.status.set(status);
+        return this.status.get();
+    }
     public String getStatus() {
         return status.get();
     }
