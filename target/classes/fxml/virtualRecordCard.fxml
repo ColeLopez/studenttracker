@@ -19,11 +19,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="638.0" prefWidth="1000.0" style="-fx-background-color: linear-gradient(to bottom right, #f8f9fa, #e9ecef);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.VirtualRecordCardController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1000.0" style="-fx-background-color: linear-gradient(to bottom right, #f8f9fa, #e9ecef);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.VirtualRecordCardController">
   <top>
-    <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+    <VBox alignment="CENTER" prefHeight="234.0" prefWidth="1000.0" spacing="10.0" BorderPane.alignment="CENTER">
       <children>
-        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="45.0" prefWidth="400.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #343a40; -fx-effect: dropshadow(gaussian, #dee2e6, 8, 0.2, 0, 2);" text="Student Record Card">
+        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="0.0" prefWidth="400.0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #343a40; -fx-effect: dropshadow(gaussian, #dee2e6, 8, 0.2, 0, 2);" text="Student Record Card">
           <font>
             <Font name="System Bold" size="28.0" />
           </font>
@@ -31,20 +31,25 @@
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
           </padding>
         </Label>
-        <Label alignment="CENTER" contentDisplay="CENTER" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-underline: true; -fx-text-fill: #495057; -fx-padding: 0 0 5 0;" text="Student Details" />
-        <VBox prefHeight="133.0" prefWidth="1000.0" spacing="15.0" style="-fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-radius: 12; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, #dee2e6, 8, 0.1, 0, 2);">
+        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="22.0" prefWidth="130.0" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-underline: true; -fx-text-fill: #495057; -fx-padding: 0 0 5 0;" text="Student Details" />
+        <VBox prefHeight="154.0" prefWidth="1000.0" spacing="15.0" style="-fx-background-color: #ffffff; -fx-border-color: #dee2e6; -fx-border-radius: 12; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, #dee2e6, 8, 0.1, 0, 2);">
           <children>
+                  <HBox alignment="CENTER" prefHeight="0.0" prefWidth="978.0">
+                     <children>
+                <Label fx:id="slpLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="20.0" prefWidth="1030.0" style="-fx-font-size: 14px;" text="SLP" HBox.hgrow="ALWAYS" />
+                     </children>
+                  </HBox>
             <VBox alignment="TOP_RIGHT" prefHeight="0.0" prefWidth="580.0">
               <children>
                         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0">
                            <children>
-                      <Label fx:id="nameLabel" alignment="CENTER" prefHeight="20.0" prefWidth="317.0" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Full Name:">
+                      <Label fx:id="nameLabel" alignment="CENTER" prefHeight="20.0" prefWidth="289.0" style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Full Name:">
                                  <font>
                                     <Font name="System Bold" size="18.0" />
                                  </font>
                               </Label>
                               <HBox prefHeight="27.0" prefWidth="648.0" />
-                      <Label fx:id="studentNumberLabel" prefHeight="27.0" prefWidth="293.0" text="Student Number">
+                      <Label fx:id="studentNumberLabel" alignment="CENTER" prefHeight="27.0" prefWidth="319.0" text="Student Number">
                         <font>
                           <Font name="System Bold" size="18.0" />
                         </font>
@@ -53,23 +58,23 @@
                         </HBox>
               </children>
             </VBox>
-            <GridPane hgap="10.0" style="-fx-background-color: transparent; -fx-border-color: transparent;" vgap="10.0">
+            <GridPane alignment="CENTER" hgap="10.0" style="-fx-background-color: transparent; -fx-border-color: transparent;" vgap="10.0">
               <columnConstraints>
-                <ColumnConstraints minWidth="120.0" prefWidth="150.0" />
-                <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
-                        <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
-                        <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
-                        <ColumnConstraints minWidth="180.0" prefWidth="250.0" />
+                <ColumnConstraints maxWidth="157.0" minWidth="50.0" prefWidth="157.0" />
+                <ColumnConstraints maxWidth="181.0" minWidth="50.0" prefWidth="176.0" />
+                        <ColumnConstraints maxWidth="221.0" minWidth="159.0" prefWidth="173.0" />
+                        <ColumnConstraints maxWidth="247.0" minWidth="123.0" prefWidth="184.0" />
+                        <ColumnConstraints maxWidth="341.0" minWidth="180.0" prefWidth="218.0" />
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="30.0" prefHeight="35.0" vgrow="SOMETIMES" />
               </rowConstraints>
               <children>
-                <Label fx:id="emailLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Email:" />
-                <Label fx:id="phoneLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Phone:" GridPane.columnIndex="1" />
-                <Label fx:id="slpLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="SLP" GridPane.columnIndex="2" />
-                <Label fx:id="statusLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Status" GridPane.columnIndex="3" />
-                        <Label fx:id="branchLabel" alignment="CENTER_LEFT" contentDisplay="LEFT" style="-fx-font-size: 14px;" text="Branch" GridPane.columnIndex="4" />
+                <Label fx:id="emailLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="20.0" prefWidth="173.0" style="-fx-font-size: 14px;" text="Email:" />
+                <Label fx:id="phoneLabel" alignment="CENTER" contentDisplay="LEFT" prefHeight="20.0" prefWidth="194.0" style="-fx-font-size: 14px;" text="Phone:" GridPane.rowIndex="1" />
+                <Label fx:id="statusLabel" alignment="CENTER" contentDisplay="LEFT" prefHeight="20.0" prefWidth="228.0" style="-fx-font-size: 14px;" text="Status" GridPane.columnIndex="4" />
+                        <Label fx:id="branchLabel" alignment="CENTER" contentDisplay="LEFT" prefHeight="20.0" prefWidth="243.0" style="-fx-font-size: 14px;" text="Branch" GridPane.columnIndex="4" GridPane.rowIndex="1" />
               </children>
               <padding>
                 <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
@@ -98,7 +103,7 @@
     </HBox>
   </bottom>
    <center>
-      <TabPane prefHeight="200.0" prefWidth="200.0" style="-fx-background-radius: 12; -fx-effect: dropshadow(gaussian, #dee2e6, 8, 0.1, 0, 2);" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+      <TabPane prefHeight="209.0" prefWidth="1000.0" style="-fx-background-radius: 12; -fx-effect: dropshadow(gaussian, #dee2e6, 8, 0.1, 0, 2);" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
           <Tab text="Modules &amp; Results">
             <content>
