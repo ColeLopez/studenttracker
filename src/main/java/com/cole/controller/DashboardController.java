@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.cole.model.StudentReportData;
 import com.cole.Service.StudentReportsService;
 import com.cole.Service.GraduatesExportService;
+import com.cole.Service.FollowUpExportService;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,6 +22,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.control.ChoiceDialog;
 
 public class DashboardController {
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
@@ -293,8 +295,45 @@ public class DashboardController {
         });
     }
 
-    public void handleFollowUpReport(ActionEvent event) {
-        
+    /**
+     * Handles the action to export the follow-up history report when the user clicks the corresponding button.
+     * Prompts the user to select a filter (e.g., completed, upcoming, due) and saves the report as an Excel file.
+     * @param event ActionEvent from the UI
+     */
+    @FXML
+    private void handleFollowUpHistoryReport() {
+        // Prompt user to select filter type
+        ChoiceDialog<String> dialog = new ChoiceDialog<>("completed", "completed", "upcoming", "overdue");
+        dialog.setTitle("Select Follow-Up Filter");
+        dialog.setHeaderText("Export Follow-Up History");
+        dialog.setContentText("Choose the type of follow-ups to export:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) return;
+
+        String filter = result.get();
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Export Follow-Up History");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+        fileChooser.setInitialFileName("follow_up_history_" + filter + ".xlsx");
+        File file = fileChooser.showSaveDialog(null);
+        if (file == null) return;
+
+        FollowUpExportService exportService = new FollowUpExportService();
+        try {
+            exportService.exportFollowUpHistoryToExcel(file, filter);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Export Successful");
+            alert.setHeaderText(null);
+            alert.setContentText("Follow-Up History exported successfully:\n" + file.getAbsolutePath());
+            alert.showAndWait();
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Export Failed");
+            alert.setHeaderText(null);
+            alert.setContentText("Failed to export Follow-Up History:\n" + e.getMessage());
+            alert.showAndWait();
+        }
     }
 
     public void handleGraduatesReport(ActionEvent event) {
