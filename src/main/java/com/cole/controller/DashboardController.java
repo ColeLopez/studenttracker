@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import javax.swing.Action;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +13,7 @@ import com.cole.model.StudentReportData;
 import com.cole.Service.StudentReportsService;
 import com.cole.Service.GraduatesExportService;
 import com.cole.Service.FollowUpExportService;
+import com.cole.Service.DatabaseBackupService;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -350,6 +353,67 @@ public class DashboardController {
             showInfo("Export Successful", "Graduates list exported to:\n" + file.getAbsolutePath());
         } catch (Exception e) {
             showError("Export Error", "Could not export graduates list.\n" + e.getMessage());
+        }
+    }
+
+    private final DatabaseBackupService dbBackupService = new DatabaseBackupService();
+
+    /**
+     * Handles backing up the SQLite database.
+     */
+    @FXML
+    private void handleBackup(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Backup Destination");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("SQLite DB Backup", "*.db", "*.sqlite", "*.bak", "*.*"));
+        fileChooser.setInitialFileName("studenttracker_backup.db");
+        File backupFile = fileChooser.showSaveDialog(null);
+        
+        if (backupFile == null) return;
+        File dbFile = new File("database/data.db");
+        if (!dbFile.exists()) {
+            showError("Database Not Found", "Could not find the database file: " + dbFile.getAbsolutePath());
+            return;
+        }
+
+        try {
+            dbBackupService.backupDatabase(dbFile, backupFile);
+            showInfo("Backup Successful", "Database backed up to:\n" + backupFile.getAbsolutePath());
+        } catch (IOException e) {
+            showError("Backup Failed", "Could not backup database:\n" + e.getMessage());
+        }
+    }
+
+    /**
+     * Handles restoring the SQLite database from a backup.
+     */
+    @FXML
+    private void handleRestore(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Backup File to Restore");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("SQLite DB Backup", "*.db", "*.sqlite", "*.bak", "*.*"));
+        File backupFile = fileChooser.showOpenDialog(null);
+        if (backupFile == null) return;
+
+        // Adjust this path to your actual SQLite DB location
+        File dbFile = new File("database/data.db");
+        if (!dbFile.exists()) {
+            showError("Database Not Found", "Could not find the database file: " + dbFile.getAbsolutePath());
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Restore");
+        confirm.setHeaderText("Restore database from backup?");
+        confirm.setContentText("This will overwrite the current database.\nProceed?");
+        Optional<ButtonType> answer = confirm.showAndWait();
+        if (answer.isEmpty() || answer.get() != ButtonType.OK) return;
+
+        try {
+            dbBackupService.restoreDatabase(backupFile, dbFile);
+            showInfo("Restore Successful", "Database restored from:\n" + backupFile.getAbsolutePath());
+        } catch (IOException e) {
+            showError("Restore Failed", "Could not restore database:\n" + e.getMessage());
         }
     }
 }
