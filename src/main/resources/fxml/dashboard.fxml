@@ -38,8 +38,8 @@
                     </items>
                   </Menu>
                   <SeparatorMenuItem mnemonicParsing="false" />
-                  <MenuItem mnemonicParsing="false" text="Backup Database" />
-                  <MenuItem mnemonicParsing="false" text="Restore Database" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleBackup" text="Backup Database" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleRestore" text="Restore Database" />
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="Logout" />
                   <SeparatorMenuItem mnemonicParsing="false" />
