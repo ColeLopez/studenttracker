@@ -13,19 +13,51 @@ import com.cole.Service.GraduatesExportService;
 import com.cole.Service.FollowUpExportService;
 import com.cole.Service.DatabaseBackupService;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Label;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 public class DashboardController {
+    @FXML
+    private Label userLabel;
+
+    @FXML
+    private VBox sidebar;
+
+    @FXML
+    private Button collapseButton;
+
+    @FXML
+    private Button dashboardBtn;
+
+    @FXML
+    private Button studentRegBtn;
+
+    @FXML
+    private Button viewStudentsBtn;
+
+    @FXML
+    private Button manageFollowUpsBtn;
+
+    @FXML
+    private Button manageGraduatesBtn;
+
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
     @FXML
     private AnchorPane contentArea;
@@ -414,4 +446,54 @@ public class DashboardController {
             showError("Restore Failed", "Could not restore database:\n" + e.getMessage());
         }
     }
+
+    /**
+     * Handles toggling the sidebar visibility.
+     */
+    private boolean sidebarCollapsed = false;
+    private final double SIDEBAR_EXPANDED_WIDTH = 200;
+    private final double SIDEBAR_COLLAPSED_WIDTH = 50;
+    @FXML private FontIcon collapseIcon;
+
+    /**
+     * Toggles the visibility of the sidebar.
+     * @param event
+     */
+    @FXML
+    private void toggleSidebar(ActionEvent event) {
+        double start = sidebar.getPrefWidth();
+        double end = sidebarCollapsed ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
+
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.ZERO, new KeyValue(sidebar.prefWidthProperty(), start)),
+            new KeyFrame(Duration.millis(200), new KeyValue(sidebar.prefWidthProperty(), end))
+        );
+
+        for (javafx.scene.Node node : sidebar.getChildren()) {
+            if (node instanceof Button btn && btn != collapseButton) {
+                double btnStart = btn.getPrefWidth();
+                double btnEnd = end;
+                timeline.getKeyFrames().addAll(
+                    new KeyFrame(Duration.ZERO, new KeyValue(btn.prefWidthProperty(), btnStart)),
+                    new KeyFrame(Duration.millis(200), new KeyValue(btn.prefWidthProperty(), btnEnd)),
+                    new KeyFrame(Duration.ZERO, new KeyValue(btn.minWidthProperty(), btnStart)),
+                    new KeyFrame(Duration.millis(200), new KeyValue(btn.minWidthProperty(), btnEnd)),
+                    new KeyFrame(Duration.ZERO, new KeyValue(btn.maxWidthProperty(), btnStart)),
+                    new KeyFrame(Duration.millis(200), new KeyValue(btn.maxWidthProperty(), btnEnd))
+                );
+            }
+        }
+
+        timeline.play();
+
+        sidebarCollapsed = !sidebarCollapsed;
+        collapseIcon.setIconLiteral(sidebarCollapsed ? "fas-align-right" : "fas-bars");
+
+        for (javafx.scene.Node node : sidebar.getChildren()) {
+            if (node instanceof Button btn && btn != collapseButton) {
+                btn.setContentDisplay(sidebarCollapsed ? javafx.scene.control.ContentDisplay.GRAPHIC_ONLY : javafx.scene.control.ContentDisplay.LEFT);
+            }
+        }
+    }
+    
 }
