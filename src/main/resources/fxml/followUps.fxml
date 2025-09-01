@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
@@ -13,15 +14,33 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.FollowUpController">
    <children>
-      <VBox layoutX="250.0" layoutY="100.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" spacing="10" style="-fx-padding: 10;">
+      <VBox layoutX="250.0" layoutY="100.0" prefHeight="200.0" prefWidth="100.0" spacing="10" style="-fx-padding: 10;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <VBox alignment="CENTER" prefHeight="20.0" prefWidth="600.0" spacing="10.0">
                <children>
                   <ToolBar prefHeight="0.0" prefWidth="790.0">
                     <items>
-                      <Button mnemonicParsing="false" onAction="#handleTodayFilterButton" text="Today" />
-                        <Button mnemonicParsing="false" onAction="#handleUpcomingFilterButton" text="Upcoming" />
-                        <Button mnemonicParsing="false" onAction="#handleOverdueFilterButton" text="Overdue" />
+                      <Button maxHeight="20.0" maxWidth="60.0" minHeight="30.0" minWidth="70.0" mnemonicParsing="false" onAction="#handleTodayFilterButton" prefHeight="25.0" prefWidth="70.0" text="Today">
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor></Button>
+                        <Button maxHeight="30.0" maxWidth="75.0" minHeight="30.0" minWidth="70.0" mnemonicParsing="false" onAction="#handleUpcomingFilterButton" prefHeight="30.0" prefWidth="80.0" text="Upcoming">
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor></Button>
+                        <Button maxHeight="25.0" maxWidth="75.0" minHeight="30.0" minWidth="70.0" mnemonicParsing="false" onAction="#handleOverdueFilterButton" prefHeight="25.0" prefWidth="70.0" text="Overdue">
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                           <cursor>
+                              <Cursor fx:constant="HAND" />
+                           </cursor></Button>
                     </items>
                   </ToolBar>
                   <Label text="Upcoming &amp; Overdue Follow Ups">
@@ -39,12 +58,21 @@
             </VBox>
             <HBox alignment="CENTER_RIGHT" prefHeight="18.0" prefWidth="600.0" spacing="10.0">
                <children>
-                  <Button mnemonicParsing="false" onAction="#handleCurrentFollowupsButton" text="Current Follow Ups" />
-                  <Button mnemonicParsing="false" onAction="#handleOverdueFollowupsButton" text="Overdue Follow Ups" />
-                  <Button fx:id="reminderButton" mnemonicParsing="false" onAction="#handleReminderButton" prefHeight="27.0" prefWidth="205.0" text="Send Upcoming Reminders">
+                  <Button maxHeight="25.0" maxWidth="160.0" minHeight="25.0" minWidth="160.0" mnemonicParsing="false" onAction="#handleCurrentFollowupsButton" prefHeight="25.0" prefWidth="160.0" text="Current Follow Ups">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor></Button>
+                  <Button maxHeight="25.0" maxWidth="160.0" minHeight="25.0" minWidth="160.0" mnemonicParsing="false" onAction="#handleOverdueFollowupsButton" prefHeight="25.0" prefWidth="160.0" text="Overdue Follow Ups">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor></Button>
+                  <Button fx:id="reminderButton" maxHeight="25.0" maxWidth="160.0" minHeight="25.0" minWidth="160.0" mnemonicParsing="false" onAction="#handleReminderButton" prefHeight="25.0" prefWidth="160.0" text="Send Upcoming Reminders">
                      <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                      </padding>
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor>
                   </Button>
                </children>
                <padding>
