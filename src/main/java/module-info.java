@@ -10,6 +10,7 @@ module com.cole {
     requires org.apache.pdfbox;
     requires org.apache.poi.poi;
     requires org.apache.poi.ooxml;
+    requires org.kordamp.ikonli.javafx;
 
     opens com.cole to javafx.fxml;
     opens com.cole.controller to javafx.fxml;
