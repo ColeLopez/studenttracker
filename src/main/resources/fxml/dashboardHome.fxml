@@ -1,37 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.text.Font?>
 
-<HBox alignment="CENTER" spacing="40.0" style="-fx-background-color: #AEB5BA;" 
-      xmlns="http://javafx.com/javafx/23.0.1"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.cole.controller.DashboardHomeController">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-    <children>
-        <VBox alignment="CENTER" spacing="10.0"
-              style="-fx-background-color: #AD0937; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropShadow(gaussian, #1f1f1f, 10, 0, 0, 4);">
-            <children>
-                <Label text="👥" textFill="#80d0d8">
-                    <font><Font size="48.0"/></font>
-                </Label>
-                <Label fx:id="activeStudentsLabel" text="0 Students" textFill="WHITE"
-                       style="-fx-font-size: 20; -fx-font-weight: Bold;" />
-            </children>
-        </VBox>
+<VBox alignment="TOP_CENTER" spacing="28" style="-fx-background-color: linear-gradient(to bottom right, #e0e7ef, #f8fafc);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.DashboardHomeController">
 
-        <VBox alignment="CENTER" spacing="10.0"
-              style="-fx-background-color: #AD0937; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropShadow(gaussian, #1f1f1f, 10, 0, 0, 4);">
-            <children>
-                <Label text="🎓" textFill="#80d0d8">
-                    <font><Font size="48.0"/></font>
-                </Label>
-                <Label fx:id="upcomingGraduationsLabel" text="0 Graduates" textFill="WHITE"
-                       style="-fx-font-size: 20; -fx-font-weight: Bold;" />
-            </children>
-        </VBox>
-    </children>
+    <!-- Minimalist Card Grid for Stats (No Completion Rate) -->
+    <GridPane alignment="CENTER" hgap="14" style="-fx-padding: 22 0 0 0;" vgap="10">
+        <children>
+            <!-- Row 1 -->
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <Label style="-fx-font-size: 16;" text="👥" />
+                <Label fx:id="activeStudentsLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Active" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <Label style="-fx-font-size: 16;" text="🙍‍♂️" />
+                <Label fx:id="inactiveStudentsLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Inactive" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                <Label style="-fx-font-size: 16;" text="📦" />
+                <Label fx:id="slpCountLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="SLPs" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                <Label style="-fx-font-size: 16;" text="⏳" />
+                <Label fx:id="pendingFollowUpsLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Pending" />
+            </VBox>
+            <!-- Row 2 -->
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                <Label style="-fx-font-size: 16;" text="📅" />
+                <Label fx:id="upcomingFollowUpsLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Upcoming" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <Label style="-fx-font-size: 16;" text="⚠️" />
+                <Label fx:id="overdueFollowUpsLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Overdue" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                <Label style="-fx-font-size: 16;" text="🎓" />
+                <Label fx:id="graduatesLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Graduates" />
+            </VBox>
+            <VBox alignment="CENTER" spacing="1" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, #b0b0b022, 6, 0, 0, 1); -fx-padding: 8 14;" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                <Label style="-fx-font-size: 16;" text="📆" />
+                <Label fx:id="upcomingGraduatesLabel" style="-fx-font-size: 14; -fx-font-weight: bold;" text="0" />
+                <Label style="-fx-font-size: 11; -fx-text-fill: #888;" text="Upcoming Grads" />
+            </VBox>
+        </children>
+      <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints />
+         <RowConstraints />
+      </rowConstraints>
+    </GridPane>
 
-    <padding><Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/></padding>
-</HBox>
+    <!-- Main Content Area -->
+    <HBox alignment="TOP_CENTER" spacing="24" style="-fx-padding: 0 20 20 20;" VBox.vgrow="ALWAYS">
+        <children>
+            <!-- To-Do List -->
+            <VBox prefWidth="250" spacing="10" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <children>
+                    <Label style="-fx-font-size: 16; -fx-font-weight: bold;" text="To-Do List" />
+                    <ListView fx:id="todoListView" prefHeight="180" VBox.vgrow="ALWAYS" />
+                    <HBox spacing="5">
+                        <TextField fx:id="todoInput" promptText="Add new task..." HBox.hgrow="ALWAYS" />
+                        <Button onAction="#handleAddTodo" text="Add" />
+                    </HBox>
+                </children>
+            </VBox>
+
+            <!-- Recent Activity Table -->
+            <VBox prefWidth="350" spacing="10" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
+                <children>
+                    <Label style="-fx-font-size: 16; -fx-font-weight: bold;" text="Recent Activity" />
+                    <TableView fx:id="recentActivityTable" prefHeight="180" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn prefWidth="80" text="Date" />
+                            <TableColumn prefWidth="240" text="Activity" />
+                        </columns>
+                    </TableView>
+                </children>
+            </VBox>
+        </children>
+    </HBox>
+</VBox>
