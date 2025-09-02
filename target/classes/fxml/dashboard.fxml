@@ -19,7 +19,10 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.DashboardController">
    <center>
-      <AnchorPane fx:id="contentArea" prefHeight="492.0" prefWidth="800.0" />
+      <AnchorPane fx:id="contentArea" prefHeight="492.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets top="2.0" />
+         </BorderPane.margin></AnchorPane>
    </center>
    <top>
       <VBox prefHeight="76.0" prefWidth="800.0" BorderPane.alignment="CENTER">
