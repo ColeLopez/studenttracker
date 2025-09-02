@@ -6,17 +6,50 @@ import org.slf4j.LoggerFactory;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 /**
  * Controller for the Dashboard Home view.
  * This class handles the initialization and loading of dashboard statistics
  * such as student count and upcoming graduations.
  */ 
 public class DashboardHomeController {
+    @FXML
+    private Label inactiveStudentsLabel;
+
+    @FXML
+    private Label slpCountLabel;
+
+    @FXML
+    private Label pendingFollowUpsLabel;
+
+    @FXML
+    private Label upcomingFollowUpsLabel;
+
+    @FXML
+    private Label overdueFollowUpsLabel;
+
+    @FXML
+    private Label graduatesLabel;
+
+    @FXML
+    private Label upcomingGraduatesLabel;
+
+    @FXML
+    private ListView todoListView;
+
+    @FXML
+    private TextField todoInput;
+
+    @FXML
+    private TableView recentActivityTable;
+
+
     private static final Logger logger = LoggerFactory.getLogger(DashboardHomeController.class);
     private final DashboardService dashboardService = new DashboardService();
 
     @FXML private Label activeStudentsLabel;
-    @FXML private Label upcomingGraduationsLabel;
 
     /**
      * Initializes the controller and loads dashboard statistics.
@@ -50,9 +83,9 @@ public class DashboardHomeController {
                 activeStudentsLabel.setText("Error loading stats.");
             }
             if (stats[1] >= 0) {
-                upcomingGraduationsLabel.setText(stats[1] + " Graduating");
+                upcomingGraduatesLabel.setText(stats[1] + " Graduating");
             } else {
-                upcomingGraduationsLabel.setText("Error loading stats.");
+                upcomingGraduatesLabel.setText("Error loading stats.");
             }
             if (stats[2] >= 0) {
                 activeStudentsLabel.setText(stats[2] + " Active");
@@ -63,10 +96,22 @@ public class DashboardHomeController {
         task.setOnFailed(e -> {
             logger.error("Failed to load dashboard stats", task.getException());
             activeStudentsLabel.setText("Error loading stats.");
-            upcomingGraduationsLabel.setText("Error loading stats.");
+            upcomingGraduatesLabel.setText("Error loading stats.");
             activeStudentsLabel.setText("Error loading stats.");
         });
         new Thread(task).start();
+    }
+
+    public void handleAddTodo() {
+        String newTask = todoInput.getText().trim();
+        if (!newTask.isEmpty()) {
+            todoListView.getItems().add(newTask);
+            todoInput.clear();
+        }
+    }
+
+    public void loadRecentActivities() {
+
     }
 
     /**
