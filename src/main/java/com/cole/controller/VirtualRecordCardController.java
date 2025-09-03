@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 public class VirtualRecordCardController {
 
     @FXML
-    private Button handleStudentReport;
+    private Button handleStudentReportButton;
 
 
     /** Callback to refresh the parent student view after changes (e.g., delete). */
@@ -241,11 +241,11 @@ public class VirtualRecordCardController {
     @FXML private TableColumn<FollowUp, Boolean> completedColumn;
 
     // FXML fields for buttons and labels
-    @FXML private Button handleAddFollowUp;
-    @FXML private Button handleEditStudent;
-    @FXML private Button handleDeleteStudent;
-    @FXML private Button handleClose;
-    @FXML private Button handleReregister; // Add this in your FXML
+    @FXML private Button handleAddFollowUpButton;
+    @FXML private Button handleEditStudentButton;
+    @FXML private Button handleDeleteStudentButton;
+    @FXML private Button handleCloseButton;
+    @FXML private Button handleReregisterButton; // Add this in your FXML
 
     /**
      * Handles closing the Virtual Record Card window.
@@ -253,8 +253,8 @@ public class VirtualRecordCardController {
     @FXML
     private void handleClose() {
         // Try to close the window containing the close button
-        if (handleClose != null) {
-            javafx.scene.Scene scene = handleClose.getScene();
+        if (handleCloseButton != null) {
+            javafx.scene.Scene scene = handleCloseButton.getScene();
             if (scene != null && scene.getWindow() != null) {
                 scene.getWindow().hide();
             }
@@ -622,7 +622,7 @@ private void handleStudentReport() {
      * This is a stub: you need to implement module selection dialog.
      */
     @FXML
-    private void handleReregisterButton() {
+    private void handleReregistration() {
         // Get selected module from table
         StudentModule oldModule = moduleTable.getSelectionModel().getSelectedItem();
         if (oldModule == null) {
