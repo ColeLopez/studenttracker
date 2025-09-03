@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -14,85 +13,62 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="600.0" prefWidth="800" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.StudentRegistrationController">
+<VBox alignment="TOP_CENTER" spacing="18" style="-fx-background-color: #f8fafc;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.StudentRegistrationController">
    <children>
-      <VBox alignment="CENTER" spacing="15" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10">
-         <padding>
-            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-         </padding>
+      <VBox spacing="0" style="-fx-background-color: #fff; -fx-background-radius: 12; -fx-padding: 28 36 28 36; -fx-effect: dropshadow(gaussian, #b0b0b044, 12, 0, 0, 2);" VBox.vgrow="ALWAYS">
          <children>
-            <Label text="Student Registration">
+            <Label style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #222;" text="Student Registration">
                <font>
-                  <Font name="System Bold" size="24.0" />
+                  <Font name="System Bold" size="22" />
                </font>
             </Label>
-            <VBox prefHeight="177.0" prefWidth="740.0" VBox.vgrow="ALWAYS">
+            <Separator style="-fx-padding: 0 0 12 0;" />
+            <GridPane hgap="18" vgap="14" VBox.vgrow="ALWAYS">
+               <columnConstraints>
+                  <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
+                  <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
+                  <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
+                  <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
+               </columnConstraints>
                <children>
-                  <GridPane hgap="10.0" vgap="10.0" VBox.vgrow="ALWAYS">
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="357.0" minWidth="10.0" prefWidth="178.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="554.0" minWidth="10.0" prefWidth="552.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
+                  <Label text="Student Number:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                  <TextField fx:id="studentNumberField" promptText="Enter Student Number" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="First Name:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                  <TextField fx:id="firstNameField" promptText="Enter First Name" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Second Name:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                  <TextField fx:id="secondNameField" promptText="Enter Second Name" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Last Name:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                  <TextField fx:id="lastNameField" promptText="Enter Last Name" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="ID Number:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                  <TextField fx:id="idField" promptText="Enter ID Number" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Email:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                  <TextField fx:id="emailField" promptText="Enter Email Address" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Phone Number:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                  <TextField fx:id="phoneField" promptText="Enter Phone Number" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Branch:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                  <TextField fx:id="branchField" promptText="Enter Boston Branch" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="3" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Enrollment Date:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                  <DatePicker fx:id="enrollmentDatePicker" promptText="Select Date" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
+                  <Label text="Current SLP:" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                  <HBox prefHeight="0.0" prefWidth="200.0" GridPane.columnIndex="3" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4">
                      <children>
-                        <Label text="Student Number:" />
-                        <TextField fx:id="studentNumberField" promptText="Enter Student Number" GridPane.columnIndex="1" />
+                        <TextField fx:id="slpField" editable="false" promptText="Slelect SLP" HBox.hgrow="ALWAYS" />
+                        <Button mnemonicParsing="false" onAction="#handleSelectSLP" text="Select..." />
                      </children>
-                  </GridPane>
-                  <GridPane hgap="10.0" vgap="10.0" VBox.vgrow="ALWAYS">
-                    <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    </rowConstraints>
-                     <children>
-                        <Label text="First Name:" />
-                        <TextField fx:id="firstNameField" promptText="Enter First Name" GridPane.columnIndex="1" />
-                        <Label text="Second Name:" GridPane.columnIndex="2" />
-                        <TextField fx:id="secondNameField" promptText="Enter Second Name" GridPane.columnIndex="3" />
-                        <Label text="Last Name:" GridPane.rowIndex="1" />
-                        <TextField fx:id="lastNameField" promptText="Enter Last Name" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Label text="ID Number:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <TextField fx:id="idField" promptText="Enter ID Number" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                        <Label text="Email:" GridPane.rowIndex="2" />
-                        <TextField fx:id="emailField" promptText="Enter Email Address" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Label text="Phone Number:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                        <TextField fx:id="phoneField" promptText="Enter Phone Number" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                        <Label text="Branch:" GridPane.rowIndex="3" />
-                        <TextField fx:id="branchField" promptText="Enter Boston Branch" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Label text="Enrollment Date:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                        <DatePicker fx:id="enrollmentDatePicker" promptText="Select Date" GridPane.columnIndex="3" GridPane.rowIndex="3" />
-                     </children>
-                  </GridPane>
+                  </HBox>
+                  <Label text="Status:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                  <ComboBox fx:id="statusComboBox" promptText="Select Student Status" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS" />
                </children>
-            </VBox>
-            <GridPane alignment="CENTER" hgap="10.0" prefHeight="35.0" prefWidth="740.0" vgap="10.0" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10" VBox.vgrow="ALWAYS">
-              <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="364.0" minWidth="10.0" prefWidth="189.0" />
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="556.0" minWidth="10.0" prefWidth="551.0" />
-              </columnConstraints>
-              <rowConstraints>
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-              </rowConstraints>
-               <children>
-                  <Label text="Current SLP:" />
-                  <ComboBox fx:id="slpComboBox" prefHeight="25.0" prefWidth="589.0" promptText="Select SLP" GridPane.columnIndex="1" />
-                  <Label text="Status:" GridPane.rowIndex="1" />
-                  <ComboBox fx:id="statusComboBox" prefHeight="25.0" prefWidth="556.0" promptText="Select Student Status" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  
-               </children>
+               <rowConstraints>
+                  <RowConstraints vgrow="ALWAYS" />
+                  <RowConstraints vgrow="ALWAYS" />
+                  <RowConstraints vgrow="ALWAYS" />
+                  <RowConstraints vgrow="ALWAYS" />
+                  <RowConstraints vgrow="ALWAYS" />
+                  <RowConstraints vgrow="ALWAYS" />
+               </rowConstraints>
             </GridPane>
-            <HBox alignment="CENTER_RIGHT" prefHeight="21.0" prefWidth="740.0" spacing="10.0">
+            <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 18 0 0 0;" VBox.vgrow="ALWAYS">
                <children>
                   <Button mnemonicParsing="false" onAction="#handleSave" text="Save" />
                   <Button mnemonicParsing="false" onAction="#handleClear" text="Clear" />
@@ -101,4 +77,4 @@
          </children>
       </VBox>
    </children>
-</AnchorPane>
+</VBox>
