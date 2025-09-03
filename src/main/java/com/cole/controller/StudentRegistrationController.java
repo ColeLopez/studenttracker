@@ -6,8 +6,10 @@ import com.cole.Service.SLPModuleService;
 import com.cole.util.DBUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
@@ -25,10 +27,11 @@ public class StudentRegistrationController {
     @FXML private TextField phoneField;
     @FXML private TextField branchField;
     @FXML private DatePicker enrollmentDatePicker;
-    @FXML private ComboBox<SLP> slpComboBox;
+    @FXML private TextField slpField; // read-only, shows selected SLP
     @FXML private ComboBox<String> statusComboBox;
 
     private final ObservableList<SLP> slps = FXCollections.observableArrayList();
+    private SLP selectedSLP = null;
 
     private static final String[] STATUS_OPTIONS = {"Active", "On Hold", "Graduated"};
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
@@ -43,6 +46,11 @@ public class StudentRegistrationController {
     public void initialize() {
         loadSLPs();
         statusComboBox.setItems(FXCollections.observableArrayList(STATUS_OPTIONS));
+        if (slpField != null) {
+            slpField.setEditable(false);
+            slpField.setFocusTraversable(false);
+            slpField.setMouseTransparent(true); //
+        }
     }
 
     /**
@@ -50,6 +58,7 @@ public class StudentRegistrationController {
      * This method retrieves all SLPs and adds them to the ComboBox for selection.
      */
     private void loadSLPs() {
+        slps.clear();
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT slp_id, slp_code, name FROM slps")) {
@@ -61,11 +70,61 @@ public class StudentRegistrationController {
                 );
                 slps.add(slp);
             }
-            slpComboBox.setItems(slps);
         } catch (SQLException e) {
             logger.error("Failed to load SLPs", e);
             showError("Failed to load SLPs", e.getMessage());
         }
+    }
+
+    /**
+     * Opens a dialog to select an SLP.
+     * This method shows a searchable list of SLPs for the user to select from.
+     */
+    @FXML
+    private void handleSelectSLP() {
+        Dialog<SLP> dialog = new Dialog<>();
+        dialog.setTitle("Select SLP");
+        dialog.setHeaderText("Search and select an SLP");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Type to search...");
+        ListView<SLP> listView = new ListView<>();
+        FilteredList<SLP> filtered = new FilteredList<>(slps, p -> true);
+        listView.setItems(filtered);
+
+        listView.setCellFactory(lv -> new ListCell<SLP>() {
+            @Override
+            protected void updateItem(SLP item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? "" : item.getName());
+            }
+        });
+
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+            String filter = newVal == null ? "" : newVal.toLowerCase();
+            filtered.setPredicate(slp -> slp != null && slp.getName() != null && slp.getName().toLowerCase().contains(filter));
+        });
+
+        VBox content = new VBox(10, searchField, listView);
+        content.setPrefSize(400, 400);
+        dialog.getDialogPane().setContent(content);
+
+        ButtonType okButtonType = new ButtonType("Select", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okButtonType, ButtonType.CANCEL);
+
+        dialog.getDialogPane().lookupButton(okButtonType).disableProperty().bind(listView.getSelectionModel().selectedItemProperty().isNull());
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == okButtonType) {
+                return listView.getSelectionModel().getSelectedItem();
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(slp -> {
+            selectedSLP = slp;
+            slpField.setText(slp.getName());
+        });
     }
 
     /**
@@ -84,7 +143,6 @@ public class StudentRegistrationController {
         String phone = phoneField.getText().trim();
         String branch = branchField.getText().trim();
         LocalDate enrollmentDate = enrollmentDatePicker.getValue();
-        SLP selectedSLP = slpComboBox.getSelectionModel().getSelectedItem();
         String status = statusComboBox.getSelectionModel().getSelectedItem();
 
         String validationError = validateFields(studentNumber, firstName, lastName, email, phone, enrollmentDate, selectedSLP, status);
@@ -188,7 +246,8 @@ public class StudentRegistrationController {
         phoneField.clear();
         branchField.clear();
         enrollmentDatePicker.setValue(null);
-        slpComboBox.getSelectionModel().clearSelection();
+        slpField.clear();
+        selectedSLP = null;
         statusComboBox.getSelectionModel().clearSelection();
     }
 
