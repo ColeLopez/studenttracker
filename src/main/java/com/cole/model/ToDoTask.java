@@ -1,0 +1,80 @@
+package com.cole.model;
+
+import java.time.LocalDate;
+
+public class ToDoTask {
+    private int id;
+    private int userId;
+    private String taskText;
+    private LocalDate dueDate;
+    private boolean completed;  
+    private String note;
+    private String recurring; // e.g., "DAILY", "WEEKLY", "MONTHLY", or null
+
+    public ToDoTask(int id, int userId, String taskText, LocalDate dueDate, boolean completed, String note, String recurring) {
+        this.id = id;
+        this.userId = userId;
+        this.taskText = taskText;
+        this.dueDate = dueDate;
+        this.completed = completed;
+        this.note = note;
+        this.recurring = recurring;
+    }
+    
+    public int getId() {
+        return id;
+    }
+    
+    public int getUserId() {
+        return userId;
+    }
+    
+    public String getTaskText() {
+        return taskText;
+    }
+    
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+    
+    public boolean isCompleted() {
+        return completed;
+    }
+    
+    public String getNote() {
+        return note;
+    }
+    
+    public String getRecurring() {
+        return recurring;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public void setTaskText(String taskText) {
+        this.taskText = taskText;
+    }
+    
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+    
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
+    }
+    
+    public void setNote(String note) {
+        this.note = note;
+    }
+    
+    public void setRecurring(String recurring) {
+        this.recurring = recurring;
+    }
+    
+}
