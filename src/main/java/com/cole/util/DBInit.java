@@ -131,7 +131,19 @@ public final class DBInit {
             "date_flagged TEXT DEFAULT CURRENT_TIMESTAMP, " +
             "FOREIGN KEY (student_id) REFERENCES students(student_id)" +
             ");",
-            "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_to_graduate_student_id ON students_to_graduate(student_id);"
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_to_graduate_student_id ON students_to_graduate(student_id);",
+            
+            "CREATE TABLE IF NOT EXISTS todos (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "user_id INTEGER NOT NULL, " +
+            "task_text TEXT NOT NULL, " +
+            "due_date TEXT NOT NULL, " +
+            "completed INTEGER DEFAULT 0, " +
+            "note TEXT, " +
+            "recurring TEXT, " +
+            "created_at TEXT DEFAULT CURRENT_TIMESTAMP, " +
+            "FOREIGN KEY (user_id) REFERENCES users(id)" +
+            ");"
         };
 
         // Execute schema statements
