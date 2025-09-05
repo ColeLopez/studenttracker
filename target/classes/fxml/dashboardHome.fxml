@@ -80,36 +80,34 @@
     <HBox alignment="TOP_CENTER" spacing="24" style="-fx-padding: 0 20 20 20;" VBox.vgrow="ALWAYS">
         <children>
             <!-- To-Do List -->
-            <VBox prefHeight="352.0" prefWidth="398.0" spacing="10" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
+            <VBox prefHeight="352.0" prefWidth="398.0" spacing="10"
+                  style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                 <children>
-               <HBox alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="366.0">
-                  <children>
-                          <Label style="-fx-font-size: 16; -fx-font-weight: bold;" text="To-Do List" />
-                     <HBox alignment="CENTER_RIGHT" prefHeight="26.0" prefWidth="164.0">
-                        <children>
-                           <CheckBox mnemonicParsing="false" text="CheckBox" />
-                        </children>
-                     </HBox>
-                  </children>
-               </HBox>
-                    <HBox spacing="5">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label style="-fx-font-size: 16; -fx-font-weight: bold;" text="To-Do List" />
+                        <CheckBox fx:id="overdueFilterCheckBox" text="Overdue Tasks" />
+                    </HBox>
+                    <HBox spacing="8">
                         <Label text="For:" />
                         <DatePicker fx:id="todoDatePicker" />
                         <Label fx:id="todoSummaryLabel" />
                     </HBox>
-                    <ListView fx:id="todoListView" prefHeight="180" VBox.vgrow="ALWAYS" />
-                    <HBox spacing="5">
-                        <TextField fx:id="todoInput" promptText="Add new task..." HBox.hgrow="ALWAYS" />
-                        <TextField fx:id="todoNoteInput" promptText="Note (optional)" />
+                    <HBox spacing="8">
+                        <ComboBox fx:id="filterCombo" promptText="Filter" prefWidth="110"/>
+                        <TextField fx:id="searchField" promptText="Search..." HBox.hgrow="ALWAYS"/>
                     </HBox>
-                    <HBox spacing="5">
-                        <ComboBox fx:id="todoRecurringCombo" promptText="Recurring">
-                            <items>
-                                
-                            </items>
-                        </ComboBox>
-                        <Button onAction="#handleAddTodo" text="Add" />
-                    </HBox>
+                    <ListView fx:id="todoListView" prefHeight="203.0" VBox.vgrow="ALWAYS" />
+                    <VBox spacing="5">
+                        <HBox spacing="5">
+                            <TextField fx:id="todoInput" promptText="Add new task..." HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="todoNoteInput" promptText="Note (optional)" />
+                        </HBox>
+                        <HBox spacing="10">
+                            <ComboBox fx:id="todoPriorityCombo" promptText="Priority" prefWidth="100"/>
+                            <ComboBox fx:id="todoRecurringCombo" promptText="Recurring" prefWidth="100"/>
+                            <Button onAction="#handleAddTodo" text="Add" />
+                        </HBox>
+                    </VBox>
                 </children>
             </VBox>
 
@@ -127,4 +125,6 @@
             </VBox>
         </children>
     </HBox>
+
+    
 </VBox>
