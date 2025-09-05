@@ -141,6 +141,7 @@ public final class DBInit {
             "completed INTEGER DEFAULT 0, " +
             "note TEXT, " +
             "recurring TEXT, " +
+            "priority TEXT DEFAULT 'Medium', " +
             "created_at TEXT DEFAULT CURRENT_TIMESTAMP, " +
             "FOREIGN KEY (user_id) REFERENCES users(id)" +
             ");"
