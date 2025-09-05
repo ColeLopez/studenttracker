@@ -9,15 +9,18 @@ public class ToDoTask {
     private LocalDate dueDate;
     private boolean completed;  
     private String note;
+    private String priority; // e.g., "Low", "Medium", "High"
     private String recurring; // e.g., "DAILY", "WEEKLY", "MONTHLY", or null
 
-    public ToDoTask(int id, int userId, String taskText, LocalDate dueDate, boolean completed, String note, String recurring) {
+    public ToDoTask(int id, int userId, String taskText, 
+            LocalDate dueDate, boolean completed, String note, String priority, String recurring) {
         this.id = id;
         this.userId = userId;
         this.taskText = taskText;
         this.dueDate = dueDate;
         this.completed = completed;
         this.note = note;
+        this.priority = priority;
         this.recurring = recurring;
     }
     
@@ -43,6 +46,10 @@ public class ToDoTask {
     
     public String getNote() {
         return note;
+    }
+
+    public String getPriority() {
+        return priority;
     }
     
     public String getRecurring() {
@@ -71,6 +78,10 @@ public class ToDoTask {
     
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
     
     public void setRecurring(String recurring) {
