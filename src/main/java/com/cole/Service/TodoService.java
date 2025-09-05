@@ -11,11 +11,19 @@ import java.util.List;
 public class TodoService {
     public static List<ToDoTask> getTasksForUserAndDate(int userId, LocalDate date) {
         List<ToDoTask> tasks = new ArrayList<>();
-        String sql = "SELECT * FROM todos WHERE user_id = ? AND due_date = ?";
+        String sql;
+        boolean filterByDate = date != null;
+        if (filterByDate) {
+            sql = "SELECT * FROM todos WHERE user_id = ? AND due_date = ?";
+        } else {
+            sql = "SELECT * FROM todos WHERE user_id = ?";
+        }
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ps.setString(2, date.toString());
+            if (filterByDate) {
+                ps.setString(2, date.toString());
+            }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 tasks.add(mapRow(rs));
