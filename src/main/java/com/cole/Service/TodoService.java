@@ -44,7 +44,7 @@ public class TodoService {
     }
 
     public static void addTask(ToDoTask task) {
-        String sql = "INSERT INTO todos (user_id, task_text, due_date, completed, note, recurring) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO todos (user_id, task_text, due_date, completed, note, priority, recurring) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, task.getUserId());
@@ -52,7 +52,8 @@ public class TodoService {
             ps.setString(3, task.getDueDate().toString());
             ps.setInt(4, task.isCompleted() ? 1 : 0);
             ps.setString(5, task.getNote());
-            ps.setString(6, task.getRecurring());
+            ps.setString(6, task.getPriority());
+            ps.setString(7, task.getRecurring());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -60,15 +61,58 @@ public class TodoService {
     }
 
     public static void updateTask(ToDoTask task) {
-        String sql = "UPDATE todos SET task_text=?, due_date=?, completed=?, note=?, recurring=? WHERE id=?";
+        String sql = "UPDATE todos SET task_text=?, due_date=?, completed=?, note=?, priority=?, recurring=? WHERE id=?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, task.getTaskText());
             ps.setString(2, task.getDueDate().toString());
             ps.setInt(3, task.isCompleted() ? 1 : 0);
             ps.setString(4, task.getNote());
-            ps.setString(5, task.getRecurring());
-            ps.setInt(6, task.getId());
+            ps.setString(5, task.getPriority());
+            ps.setString(6, task.getRecurring());
+            ps.setInt(7, task.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<ToDoTask> getRecurringTasksForUser(int userId) {
+        List<ToDoTask> tasks = new ArrayList<>();
+        String sql = "SELECT * FROM todos WHERE user_id = ? AND recurring IS NOT NULL";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                tasks.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tasks;
+    }
+
+    public static boolean existsForDate(ToDoTask task, LocalDate date) {
+        String sql = "SELECT COUNT(*) FROM todos WHERE user_id = ? AND task_text = ? AND due_date = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, task.getUserId());
+            ps.setString(2, task.getTaskText());
+            ps.setString(3, date.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static void deleteTask(int taskId) {
+        String sql = "DELETE FROM todos WHERE id=?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, taskId);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -83,6 +127,7 @@ public class TodoService {
             LocalDate.parse(rs.getString("due_date")),
             rs.getInt("completed") == 1,
             rs.getString("note"),
+            rs.getString("priority"),
             rs.getString("recurring")
         );
     }
