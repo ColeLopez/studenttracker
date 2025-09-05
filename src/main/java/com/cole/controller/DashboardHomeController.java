@@ -10,7 +10,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.util.Pair;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,36 +126,48 @@ public class DashboardHomeController {
                 @Override
                 protected void updateItem(ToDoTask task, boolean empty) {
                     super.updateItem(task, empty);
-                    if (empty || task == null) {
-                        setText(null);
-                        setGraphic(null);
-                    } else {
-                        checkBox.setSelected(task.isCompleted());
-                        String display = task.getTaskText();
-                        if (task.getNote() != null && !task.getNote().isEmpty()) {
-                            display += "\n" + task.getNote();
-                        }
-                        // Priority color
-                        String color = switch (task.getPriority() == null ? "Medium" : task.getPriority()) {
-                            case "High" -> "#d90429";
-                            case "Low" -> "#2b9348";
-                            default -> "#212529";
+                                if (empty || task == null) {
+                                    setText(null);
+                                    setGraphic(null);
+                                } else {
+                                    checkBox.setSelected(task.isCompleted());
+                                    String display = task.getTaskText();
+                                    if (task.getNote() != null && !task.getNote().isEmpty()) {
+                                        display += "\n" + task.getNote();
+                                    }
+                                    String textColor = "#212529";
+                                    String bgColor = "transparent";
+                                    if (task.isCompleted()) {
+                                        bgColor = "#d6ffd6"; // green for completed
+                                    } else if (task.getDueDate().isBefore(LocalDate.now())) {
+                                        bgColor = "#ffe5e5"; // red for overdue
+                                    }
+                                    // Priority border color
+                                    String borderColor = switch (task.getPriority() == null ? "Medium" : task.getPriority()) {
+                                        case "High" -> "#d90429";   // red
+                                        case "Low" -> "#2b9348";    // green
+                                        default -> "#f9c846";        // yellow/orange for medium
+                                    };
+                                    StringBuilder style = new StringBuilder();
+                                    style.append("-fx-background-color: ").append(bgColor).append(";");
+                                    style.append("-fx-text-fill: ").append(textColor).append(";");
+                                    style.append("-fx-border-color: ").append(borderColor).append(";");
+                                    style.append("-fx-border-width: 0 0 0 6px;");
+                                    style.append("-fx-border-radius: 4px;");
+                                    if (task.isCompleted()) style.append(" -fx-strikethrough: true;");
+                                    label.setText(display);
+                                    label.setStyle(style.toString());
+                                    setGraphic(hbox);
+                                }
+                            }
                         };
-                        label.setText(display);
-                        label.setStyle("-fx-text-fill: " + color + ";" +
-                                (task.isCompleted() ? " -fx-strikethrough: true;" : "") +
-                                (task.getDueDate().isBefore(LocalDate.now()) && !task.isCompleted() ? " -fx-background-color: #ffe5e5;" : ""));
-                        setGraphic(hbox);
-                    }
-                }
-            };
-            cell.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && !cell.isEmpty()) {
-                    showEditTaskDialog(cell.getItem());
-                }
-            });
-            return cell;
-        });
+                        cell.setOnMouseClicked(event -> {
+                            if (event.getClickCount() == 2 && !cell.isEmpty()) {
+                                showEditTaskDialog(cell.getItem());
+                            }
+                        });
+                        return cell;
+                    });
 
         todoDatePicker.valueProperty().addListener((obs, oldDate, newDate) -> refreshTodoTasks());
         overdueFilterCheckBox.selectedProperty().addListener((obs, wasSelected, isSelected) -> refreshTodoTasks());
@@ -232,14 +243,21 @@ public class DashboardHomeController {
 
     private void refreshTodoTasks() {
         checkAndGenerateRecurringTasks();
-        List<ToDoTask> loaded;
-        if (overdueFilterCheckBox.isSelected()) {
-            loaded = TodoService.getOverdueTasks(currentUserId, LocalDate.now());
-        } else {
-            loaded = TodoService.getTasksForUserAndDate(currentUserId, todoDatePicker.getValue());
-        }
         String filter = filterCombo.getValue();
         String search = searchField.getText().toLowerCase();
+        List<ToDoTask> loaded;
+        if ("All".equals(filter)) {
+            // Default: show tasks for selected date or overdue if checked
+            if (overdueFilterCheckBox.isSelected()) {
+                loaded = TodoService.getOverdueTasks(currentUserId, LocalDate.now());
+            } else {
+                loaded = TodoService.getTasksForUserAndDate(currentUserId, todoDatePicker.getValue());
+            }
+        } else {
+            // For any other filter, show ALL tasks for the user (ignore date)
+            loaded = TodoService.getTasksForUserAndDate(currentUserId, null); // null means all dates
+        }
+
         List<ToDoTask> filtered = loaded.stream()
             .filter(t -> {
                 if ("Completed".equals(filter)) return t.isCompleted();
