@@ -133,6 +133,7 @@ public final class DBInit {
             ");",
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_students_to_graduate_student_id ON students_to_graduate(student_id);",
             
+            // To-Do Tasks table
             "CREATE TABLE IF NOT EXISTS todos (" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "user_id INTEGER NOT NULL, " +
@@ -142,8 +143,18 @@ public final class DBInit {
             "note TEXT, " +
             "recurring TEXT, " +
             "priority TEXT DEFAULT 'Medium', " +
+            "active INTEGER DEFAULT 1, " +
+            "parent_id INTEGER, " +
             "created_at TEXT DEFAULT CURRENT_TIMESTAMP, " +
             "FOREIGN KEY (user_id) REFERENCES users(id)" +
+            ");",
+            
+            //To-Do Recurring Exclusions table
+            "CREATE TABLE IF NOT EXISTS todo_recurring_exclusions (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "task_id INTEGER NOT NULL, " +
+            "excluded_date TEXT NOT NULL, " +
+            "FOREIGN KEY (task_id) REFERENCES todos(id)" +
             ");"
         };
 
