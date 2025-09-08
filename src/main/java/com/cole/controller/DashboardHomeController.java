@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class DashboardHomeController {
     @FXML
-    private TableView recentActivityTable;
+    private TableView<Object> recentActivityTable;
 
     @FXML
     private Label inactiveStudentsLabel;
