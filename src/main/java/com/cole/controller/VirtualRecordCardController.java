@@ -11,6 +11,8 @@ import com.cole.model.Student;
 import com.cole.model.StudentModule;
 import com.cole.model.StudentReportData;
 import com.cole.util.DBUtil;
+import com.cole.model.SLP;
+import com.cole.Service.SLPService;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -30,6 +32,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.control.DatePicker;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -351,10 +354,10 @@ private void handleStudentReport() {
      * @param message The error message to display.
      */
     @FXML
-    private void handleEditStudent() {
+    private List<Object> handleEditStudent() {
         if (selectedStudent == null) {
             showError("No student selected", "Please select a student to edit.");
-            return;
+            return null;
         }
         // Create dialog fields pre-filled with current values
         javafx.scene.control.TextField firstNameField = new javafx.scene.control.TextField(selectedStudent.getFirstName());
@@ -365,27 +368,24 @@ private void handleStudentReport() {
         javafx.scene.control.TextField phoneField = new javafx.scene.control.TextField(selectedStudent.getPhoneNumber());
         javafx.scene.control.TextField branchField = new javafx.scene.control.TextField(selectedStudent.getBranch());
         // ComboBox for SLP
-        javafx.scene.control.ComboBox<String> slpCombo = new javafx.scene.control.ComboBox<>();
-        javafx.collections.ObservableList<String> slpOptions = FXCollections.observableArrayList();
-        int currentSlpIndex = 0;
-        String currentSlp = selectedStudent.getSlp();
-        // Load SLPs from DB
-        String slpSql = "SELECT name FROM slps ORDER BY name";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(slpSql);
-             ResultSet rs = stmt.executeQuery()) {
-            int idx = 0;
-            while (rs.next()) {
-                String slpName = rs.getString("name");
-                slpOptions.add(slpName);
-                if (slpName.equals(currentSlp)) currentSlpIndex = idx;
-                idx++;
-            }
-        } catch (SQLException e) {
-            logger.error("Error loading SLPs", e);
-        }
+        javafx.scene.control.ComboBox<SLP> slpCombo = new javafx.scene.control.ComboBox<>();
+        SLPService slpService = new SLPService();
+        javafx.collections.ObservableList<SLP> slpOptions = FXCollections.observableArrayList(slpService.getAllSLPs());
         slpCombo.setItems(slpOptions);
-        slpCombo.getSelectionModel().select(currentSlpIndex);
+
+        // Select the student's current SLP
+        SLP currentSlpObj = null;
+        for (SLP slp : slpOptions) {
+            if (slp.getName().equals(selectedStudent.getSlp())) {
+                currentSlpObj = slp;
+                break;
+            }
+        }
+        if (currentSlpObj != null) {
+            slpCombo.getSelectionModel().select(currentSlpObj);
+        } else if (!slpOptions.isEmpty()) {
+            slpCombo.getSelectionModel().select(0);
+        }
 
         // ComboBox for Status
         javafx.scene.control.ComboBox<String> statusCombo = new javafx.scene.control.ComboBox<>();
@@ -415,7 +415,7 @@ private void handleStudentReport() {
         grid.add(new javafx.scene.control.Label("Status:"), 0, 8);
         grid.add(statusCombo, 1, 8);
 
-        javafx.scene.control.Dialog<java.util.List<String>> dialog = new javafx.scene.control.Dialog<>();
+        javafx.scene.control.Dialog<java.util.List<Object>> dialog = new javafx.scene.control.Dialog<>();
         dialog.setTitle("Edit Student");
         dialog.setHeaderText("Edit student details");
         dialog.getDialogPane().setContent(grid);
@@ -429,60 +429,51 @@ private void handleStudentReport() {
                     idNumberField.getText(),
                     emailField.getText(),
                     phoneField.getText(),
-                    slpCombo.getSelectionModel().getSelectedItem(),
+                    slpCombo.getSelectionModel().getSelectedItem(), // SLP object
                     branchField.getText(),
                     statusCombo.getSelectionModel().getSelectedItem()
                 );
             }
             return null;
         });
-        java.util.Optional<java.util.List<String>> result = dialog.showAndWait();
+        java.util.Optional<java.util.List<Object>> result = dialog.showAndWait();
         if (result.isPresent()) {
-            java.util.List<String> values = result.get();
+            java.util.List<Object> values = result.get();
+            SLP newSlp = (SLP) values.get(6); // SLP object
+            int newSlpId = newSlp.getId();
+            String newSlpName = newSlp.getName();
             String oldSlp = selectedStudent.getSlp();
-            // Fix: update students table to use correct column names (phone -> phone, SLP -> current_slp_id)
-            String getSlpIdSql = "SELECT slp_id FROM slps WHERE name = ?";
-            int newSlpId = -1;
+
             try (Connection conn = DBUtil.getConnection()) {
-                // Get new SLP id
-                try (PreparedStatement getSlpIdStmt = conn.prepareStatement(getSlpIdSql)) {
-                    getSlpIdStmt.setString(1, values.get(4));
-                    try (ResultSet rs = getSlpIdStmt.executeQuery()) {
-                        if (rs.next()) newSlpId = rs.getInt("slp_id");
-                    }
-                }
-                if (newSlpId == -1) {
-                    showError("Error updating student", "SLP not found in database.");
-                    return;
-                }
                 String sql = "UPDATE students SET first_name = ?, second_name = ?, last_name = ?, id_number = ?, email = ?, phone = ?, branch = ?, current_slp_id = ?, status = ? WHERE student_id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setString(1, values.get(0)); // first_name
-                    stmt.setString(2, values.get(1)); // second_name
-                    stmt.setString(3, values.get(2)); // last_name
-                    stmt.setString(4, values.get(3)); // id_number
-                    stmt.setString(5, values.get(4)); // email
-                    stmt.setString(6, values.get(5)); // phone
-                    stmt.setString(7, values.get(7)); // branch
-                    stmt.setInt(8, newSlpId);         // current_slp_id
-                    stmt.setString(9, values.get(8)); // status
-                    stmt.setInt(10, selectedStudent.getId()); // student_id
+                    stmt.setString(1, (String) values.get(0)); // first_name
+                    stmt.setString(2, (String) values.get(1)); // second_name
+                    stmt.setString(3, (String) values.get(2)); // last_name
+                    stmt.setString(4, (String) values.get(3)); // id_number
+                    stmt.setString(5, (String) values.get(4)); // email
+                    stmt.setString(6, (String) values.get(5)); // phone
+                    stmt.setString(7, (String) values.get(7)); // branch
+                    stmt.setInt(8, newSlpId);                  // current_slp_id
+                    stmt.setString(9, (String) values.get(8)); // status
+                    stmt.setInt(10, selectedStudent.getId());  // student_id
                     stmt.executeUpdate();
                 }
+
                 // Update local object using property setters
-                selectedStudent.firstNameProperty().set(values.get(0));
-                selectedStudent.secondNameProperty().set(values.get(1));
-                selectedStudent.lastNameProperty().set(values.get(2));
-                selectedStudent.idNumberProperty().set(values.get(3));
-                selectedStudent.emailProperty().set(values.get(4));
-                selectedStudent.phoneNumberProperty().set(values.get(5));
-                selectedStudent.slpProperty().set(values.get(6));
-                selectedStudent.branchProperty().set(values.get(7));
-                selectedStudent.statusProperty().set(values.get(8));
+                selectedStudent.firstNameProperty().set((String) values.get(0));
+                selectedStudent.secondNameProperty().set((String) values.get(1));
+                selectedStudent.lastNameProperty().set((String) values.get(2));
+                selectedStudent.idNumberProperty().set((String) values.get(3));
+                selectedStudent.emailProperty().set((String) values.get(4));
+                selectedStudent.phoneNumberProperty().set((String) values.get(5));
+                selectedStudent.slpProperty().set(newSlpName);
+                selectedStudent.branchProperty().set((String) values.get(7));
+                selectedStudent.statusProperty().set((String) values.get(8));
                 loadStudentDetails();
 
                 // If SLP changed, unlink old modules and link new ones, and add automated note
-                if (!oldSlp.equals(values.get(4))) {
+                if (!oldSlp.equals(newSlpName)) {
                     // 1. Unlink all modules for this student
                     String unlinkSql = "DELETE FROM student_modules WHERE student_id = ?";
                     try (PreparedStatement unlinkStmt = conn.prepareStatement(unlinkSql)) {
@@ -517,7 +508,7 @@ private void handleStudentReport() {
                     String noteSql = "INSERT INTO notes (student_id, note_text, date_added) VALUES (?, ?, date('now'))";
                     try (PreparedStatement noteStmt = conn.prepareStatement(noteSql)) {
                         noteStmt.setInt(1, selectedStudent.getId());
-                        noteStmt.setString(2, "SLP changed from '" + oldSlp + "' to '" + values.get(4) + "'. Modules relinked.");
+                        noteStmt.setString(2, "SLP changed from '" + oldSlp + "' to '" + newSlpName + "'. Modules relinked.");
                         noteStmt.executeUpdate();
                     }
                     // 4. Reload modules and notes
@@ -538,6 +529,7 @@ private void handleStudentReport() {
                 refreshCallback.run();
             }
         }
+        return null;
     }
 
     /**
