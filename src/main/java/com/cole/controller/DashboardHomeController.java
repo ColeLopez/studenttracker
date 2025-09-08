@@ -1,8 +1,13 @@
 package com.cole.controller;
 
+import com.cole.Service.ActivityService;
 import com.cole.Service.DashboardService;
 import com.cole.Service.TodoService;
+import com.cole.model.RecentActivity;
 import com.cole.model.ToDoTask;
+import com.cole.util.UserSession;
+
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -57,11 +62,16 @@ public class DashboardHomeController {
     @FXML private CheckBox overdueFilterCheckBox;
     @FXML private ComboBox<String> filterCombo;
     @FXML private TextField searchField;
+    @FXML private TableColumn<RecentActivity, String> activityTimeColumn;
+    @FXML private TableColumn<RecentActivity, String> activityTypeColumn;
+    @FXML private TableColumn<RecentActivity, String> activityDescriptionColumn;
+    @FXML private ComboBox<String> userFilterCombo;
+    @FXML private ComboBox<String> roleFilterCombo;
 
     private ObservableList<ToDoTask> todoTasks = FXCollections.observableArrayList();
     private static final Logger logger = LoggerFactory.getLogger(DashboardHomeController.class);
     private final DashboardService dashboardService = new DashboardService();
-    private int currentUserId; // Set this from your login/session logic
+    private int currentUserId = UserSession.getInstance().getUserId(); // Set this from your login/session logic
 
     @FXML private Label activeStudentsLabel;
 
@@ -181,8 +191,22 @@ public class DashboardHomeController {
         filterCombo.getSelectionModel().select("All");
         filterCombo.valueProperty().addListener((obs, old, val) -> refreshTodoTasks());
         searchField.textProperty().addListener((obs, old, val) -> refreshTodoTasks());
+        activityTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getActivityTime().toString()));
+        activityTypeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getActivityType()));
+        activityDescriptionColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDescription()));
+        loadRecentActivity();
         loadDashboardStats();
         refreshTodoTasks();
+
+        // Only show filter controls if user is high-level (e.g., ADMIN/MANAGER)
+        boolean isHighLevel = "ADMIN".equalsIgnoreCase(UserSession.getInstance().getUserRole()) ||
+                              "MANAGER".equalsIgnoreCase(UserSession.getInstance().getUserRole());
+        userFilterCombo.setVisible(isHighLevel);
+        roleFilterCombo.setVisible(isHighLevel);
+
+        // Populate combos (fetch user list and roles from DB/service)
+        userFilterCombo.setItems(FXCollections.observableArrayList(ActivityService.getAllUsernames()));
+        roleFilterCombo.setItems(FXCollections.observableArrayList("ADMIN", "MANAGER", "USER"));
     }
 
     /**
@@ -242,6 +266,7 @@ public class DashboardHomeController {
                 0, currentUserId, text, todoDatePicker.getValue(), false, note, priority, recurring
             );
             TodoService.addTask(newTask);
+            ActivityService.logActivity(currentUserId, "TODO_ADDED", "Added to-do: " + newTask.getTaskText());
             todoInput.clear();
             todoNoteInput.clear();
             todoPriorityCombo.getSelectionModel().select("Medium");
@@ -405,5 +430,20 @@ public class DashboardHomeController {
         alert.setHeaderText(message);
         alert.setContentText(e != null ? e.getMessage() : null);
         alert.showAndWait();
+    }
+
+    private void loadRecentActivity() {
+        List<RecentActivity> activities = ActivityService.getRecentActivities(10);
+        recentActivityTable.setItems(FXCollections.observableArrayList(activities));
+    }
+
+    @FXML
+    private void handleActivityFilter() {
+        String selectedUser = userFilterCombo.getValue();
+        String selectedRole = roleFilterCombo.getValue();
+        Integer userId = selectedUser != null ? ActivityService.getUserIdByUsername(selectedUser) : null;
+        String role = selectedRole != null ? selectedRole : null;
+        List<RecentActivity> activities = ActivityService.getRecentActivitiesByUserOrRole(userId, role, 10);
+        recentActivityTable.setItems(FXCollections.observableArrayList(activities));
     }
 }
