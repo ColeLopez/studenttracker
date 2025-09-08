@@ -3,6 +3,8 @@ package com.cole.controller;
 import java.io.IOException;
 
 import com.cole.Service.AuthService;
+import com.cole.model.User;
+import com.cole.util.UserSession; // <-- Use util, not session package
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.concurrent.Task;
@@ -79,6 +81,8 @@ public class LoginController {
         };
         task.setOnSucceeded(e -> {
             if (task.getValue()) {
+                User user = authService.getUserByUsername(username);
+                UserSession.getInstance().setUser(user); // <-- Set session here
                 showAlert(Alert.AlertType.INFORMATION, "Login Successful", "Welcome " + username + "!");
                 try {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dashboard.fxml"));
@@ -86,7 +90,7 @@ public class LoginController {
                     Stage stage = (Stage) usernameField.getScene().getWindow();
                     stage.setScene(new Scene(root));
                     stage.setTitle("Dashboard");
-                    stage.centerOnScreen(); // <-- Add this line
+                    stage.centerOnScreen();
                 } catch (IOException ex) {
                     logger.error("Failed to load dashboard.fxml", ex);
                     showAlert(Alert.AlertType.ERROR, "Navigation Error", "Could not load dashboard.");
