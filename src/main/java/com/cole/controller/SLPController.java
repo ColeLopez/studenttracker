@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import javafx.concurrent.Task;
 
 import com.cole.model.SLP;
-// ...existing code...
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -247,6 +246,24 @@ public class SLPController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Syncs modules to students for the selected SLP.
+     * Invoked by the UI when the user clicks the "Sync Modules" button.
+     * This method directly calls the service layer to perform the sync operation.
+     */
+    @FXML
+    private void handleSyncModules() {
+        SLP selectedSLP = slpTable.getSelectionModel().getSelectedItem();
+        if (selectedSLP == null) {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Please select an SLP to sync.", ButtonType.OK);
+            alert.showAndWait();
+            return;
+        }
+        com.cole.Service.SLPModuleService.syncModulesToStudents(selectedSLP.getId());
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Modules synced to all students in this SLP.", ButtonType.OK);
         alert.showAndWait();
     }
 }
