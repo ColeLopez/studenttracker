@@ -11,6 +11,8 @@ public class ToDoTask {
     private String note;
     private String priority; // e.g., "Low", "Medium", "High"
     private String recurring; // e.g., "DAILY", "WEEKLY", "MONTHLY", or null
+    private boolean active = true;
+    private Integer parentId; // ID of the parent task if this is a subtask
 
     public ToDoTask(int id, int userId, String taskText, 
             LocalDate dueDate, boolean completed, String note, String priority, String recurring) {
@@ -56,6 +58,10 @@ public class ToDoTask {
         return recurring;
     }
     
+    public boolean isActive() {
+        return active;
+    }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -87,5 +93,15 @@ public class ToDoTask {
     public void setRecurring(String recurring) {
         this.recurring = recurring;
     }
-    
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+    public Integer getParentId() {
+        return parentId;
+    }
 }
