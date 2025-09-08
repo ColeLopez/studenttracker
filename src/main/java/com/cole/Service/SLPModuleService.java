@@ -36,12 +36,12 @@ public class SLPModuleService {
      * @return List of SLP objects.
      */
     public List<SLP> getAllSLPs() {
-        List<SLP> slps = new ArrayList<>();
+        List<SLP> slpList = new ArrayList<>();
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(SELECT_ALL_SLPS)) {
             while (rs.next()) {
-                slps.add(new SLP(
+                slpList.add(new SLP(
                         rs.getInt("slp_id"),
                         rs.getString("slp_code"),
                         rs.getString("name")
@@ -50,7 +50,7 @@ public class SLPModuleService {
         } catch (SQLException e) {
             logger.error("Failed to load SLPs", e);
         }
-        return slps;
+        return slpList;
     }
 
     /**
@@ -190,4 +190,63 @@ public class SLPModuleService {
             return false;
         }
     }
+
+    /**
+     * Links a module to an SLP and assigns this module to all students already in this SLP.
+     * @param slpId SLP ID.
+     * @param moduleId Module ID to link.
+     * @param moduleCode Module code.
+     * @param moduleName Module name.
+     */
+    public static void linkModuleToSLP(int slpId, int moduleId, String moduleCode, String moduleName) {
+        // Link the module to the SLP (your existing code)
+        String linkSql = "INSERT INTO slp_modules (slp_id, module_id) VALUES (?, ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(linkSql)) {
+            ps.setInt(1, slpId);
+            ps.setInt(2, moduleId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // NEW: Assign this module to all students already in this SLP
+        String assignSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name) " +
+                           "SELECT s.id, ?, ?, ? FROM students s " +
+                           "WHERE s.current_slp_id = ? " +
+                           "AND NOT EXISTS (SELECT 1 FROM student_modules sm WHERE sm.student_id = s.id AND sm.module_id = ?)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(assignSql)) {
+            ps.setInt(1, moduleId);
+            ps.setString(2, moduleCode);
+            ps.setString(3, moduleName);
+            ps.setInt(4, slpId);
+            ps.setInt(5, moduleId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Assigns all modules currently linked to the SLP to all students currently in that SLP.
+     * Does not create duplicates.
+     * @param slpId SLP ID.
+     */
+    public static void syncModulesToStudents(int slpId) {
+        String sql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name) " +
+                     "SELECT s.id, m.module_id, m.module_code, m.name " +
+                     "FROM students s " +
+                     "JOIN slp_modules sm ON sm.slp_id = s.current_slp_id " +
+                     "JOIN modules m ON m.module_id = sm.module_id " +
+                     "WHERE s.current_slp_id = ? " +
+                     "AND NOT EXISTS (SELECT 1 FROM student_modules sm2 WHERE sm2.student_id = s.id AND sm2.module_id = m.module_id)";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, slpId);
+            ps.executeUpdate();
+    } catch (SQLException e) {
+        LoggerFactory.getLogger(SLPModuleService.class).error("Failed to sync modules to students for SLP " + slpId, e);
+    }
+}
 }
