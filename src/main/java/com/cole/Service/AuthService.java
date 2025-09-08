@@ -1,12 +1,13 @@
 package com.cole.Service;
 
+import com.cole.model.User;
+import com.cole.util.DBUtil;
+import com.cole.util.PasswordUtil;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import com.cole.util.DBUtil;
-import com.cole.util.PasswordUtil;
 
 public class AuthService {
     
@@ -71,5 +72,23 @@ public class AuthService {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public User getUserByUsername(String username) {
+        String sql = "SELECT * FROM users WHERE username = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String uname = rs.getString("username");
+                String role = rs.getString("role");
+                return new User(id, uname, role);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
