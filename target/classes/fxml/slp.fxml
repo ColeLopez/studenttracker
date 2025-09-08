@@ -16,6 +16,7 @@
             <Button onAction="#handleAddSLP" text="Add SLP" />
             <Button onAction="#handleEditSLP" text="Edit SLP" />
             <Button onAction="#handleDeleteSLP" text="Delete SLP" />
+            <Button text="Sync Modules to Students" onAction="#handleSyncModules"/>
         </items>
     </ToolBar>
     <TableView fx:id="slpTable" prefHeight="400.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
