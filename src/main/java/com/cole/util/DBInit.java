@@ -33,7 +33,8 @@ public final class DBInit {
             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
             "username TEXT UNIQUE NOT NULL, " +
             "password_hash TEXT NOT NULL, " +
-            "salt TEXT NOT NULL" +
+            "salt TEXT NOT NULL, " +
+            "role TEXT NOT NULL" +
             ");",
 
             // SLPs table
@@ -155,6 +156,15 @@ public final class DBInit {
             "task_id INTEGER NOT NULL, " +
             "excluded_date TEXT NOT NULL, " +
             "FOREIGN KEY (task_id) REFERENCES todos(id)" +
+            ");",
+
+            //activity log table
+            "CREATE TABLE IF NOT EXISTS activity_log (" +
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            "user_id INTEGER, " +
+            "activity_type TEXT, " +
+            "description TEXT, " +
+            "activity_time TEXT DEFAULT CURRENT_TIMESTAMP" +
             ");"
         };
 
