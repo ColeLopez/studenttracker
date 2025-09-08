@@ -115,8 +115,14 @@ public class DashboardHomeController {
                             alert.setContentText(task.getTaskText());
                             alert.showAndWait().ifPresent(result -> {
                                 if (result == ButtonType.OK) {
-                                    TodoService.deleteTask(task.getId());
-                                    refreshTodoTasks();
+                                    try {
+                                        int exclusionId = (task.getParentId() != null) ? task.getParentId() : task.getId();
+                                        TodoService.addRecurringExclusion(exclusionId, task.getDueDate());
+                                        TodoService.deleteTask(task.getId());
+                                        refreshTodoTasks();
+                                    } catch (Exception ex) {
+                                        showError("Failed to delete task.", ex);
+                                    }
                                 }
                             });
                         }
@@ -217,63 +223,72 @@ public class DashboardHomeController {
             activeStudentsLabel.setText("Error loading stats.");
             upcomingGraduatesLabel.setText("Error loading stats.");
             activeStudentsLabel.setText("Error loading stats.");
+            showError("Failed to load dashboard statistics.", task.getException());
         });
         new Thread(task).start();
     }
 
     @FXML
     private void handleAddTodo() {
-        String text = todoInput.getText().trim();
-        String note = todoNoteInput.getText().trim();
-        String priority = todoPriorityCombo.getValue();
-        String recurring = todoRecurringCombo.getValue();
-        if (text.isEmpty()) return;
-        if ("None".equals(recurring)) recurring = null;
+        try {
+            String text = todoInput.getText().trim();
+            String note = todoNoteInput.getText().trim();
+            String priority = todoPriorityCombo.getValue();
+            String recurring = todoRecurringCombo.getValue();
+            if (text.isEmpty()) return;
+            if ("None".equals(recurring)) recurring = null;
 
-        ToDoTask newTask = new ToDoTask(
-            0, currentUserId, text, todoDatePicker.getValue(), false, note, priority, recurring
-        );
-        TodoService.addTask(newTask);
-        todoInput.clear();
-        todoNoteInput.clear();
-        todoPriorityCombo.getSelectionModel().select("Medium");
-        todoRecurringCombo.getSelectionModel().select("None");
-        refreshTodoTasks();
+            ToDoTask newTask = new ToDoTask(
+                0, currentUserId, text, todoDatePicker.getValue(), false, note, priority, recurring
+            );
+            TodoService.addTask(newTask);
+            todoInput.clear();
+            todoNoteInput.clear();
+            todoPriorityCombo.getSelectionModel().select("Medium");
+            todoRecurringCombo.getSelectionModel().select("None");
+            refreshTodoTasks();
+        } catch (Exception e) {
+            showError("Failed to add task.", e);
+        }
     }
 
     private void refreshTodoTasks() {
-        checkAndGenerateRecurringTasks();
-        String filter = filterCombo.getValue();
-        String search = searchField.getText().toLowerCase();
-        List<ToDoTask> loaded;
-        if ("All".equals(filter)) {
-            // Default: show tasks for selected date or overdue if checked
-            if (overdueFilterCheckBox.isSelected()) {
-                loaded = TodoService.getOverdueTasks(currentUserId, LocalDate.now());
+        try {
+            checkAndGenerateRecurringTasks();
+            String filter = filterCombo.getValue();
+            String search = searchField.getText().toLowerCase();
+            List<ToDoTask> loaded;
+            if ("All".equals(filter)) {
+                // Default: show tasks for selected date or overdue if checked
+                if (overdueFilterCheckBox.isSelected()) {
+                    loaded = TodoService.getOverdueTasks(currentUserId, LocalDate.now());
+                } else {
+                    loaded = TodoService.getTasksForUserAndDate(currentUserId, todoDatePicker.getValue());
+                }
             } else {
-                loaded = TodoService.getTasksForUserAndDate(currentUserId, todoDatePicker.getValue());
+                // For any other filter, show ALL tasks for the user (ignore date)
+                loaded = TodoService.getTasksForUserAndDate(currentUserId, null); // null means all dates
             }
-        } else {
-            // For any other filter, show ALL tasks for the user (ignore date)
-            loaded = TodoService.getTasksForUserAndDate(currentUserId, null); // null means all dates
+
+            List<ToDoTask> filtered = loaded.stream()
+                .filter(t -> {
+                    if ("Completed".equals(filter)) return t.isCompleted();
+                    if ("Pending".equals(filter)) return !t.isCompleted();
+                    if ("Overdue".equals(filter)) return !t.isCompleted() && t.getDueDate().isBefore(LocalDate.now());
+                    if ("High".equals(filter) || "Medium".equals(filter) || "Low".equals(filter))
+                        return filter.equals(t.getPriority());
+                    return true;
+                })
+                .filter(t -> t.getTaskText().toLowerCase().contains(search) || (t.getNote() != null && t.getNote().toLowerCase().contains(search)))
+                .toList();
+            todoTasks.setAll(filtered);
+
+            long completed = filtered.stream().filter(ToDoTask::isCompleted).count();
+            long overdue = filtered.stream().filter(t -> !t.isCompleted() && t.getDueDate().isBefore(LocalDate.now())).count();
+            todoSummaryLabel.setText(completed + " of " + filtered.size() + " completed, " + overdue + " overdue");
+        } catch (Exception e) {
+            showError("Failed to refresh tasks.", e);
         }
-
-        List<ToDoTask> filtered = loaded.stream()
-            .filter(t -> {
-                if ("Completed".equals(filter)) return t.isCompleted();
-                if ("Pending".equals(filter)) return !t.isCompleted();
-                if ("Overdue".equals(filter)) return !t.isCompleted() && t.getDueDate().isBefore(LocalDate.now());
-                if ("High".equals(filter) || "Medium".equals(filter) || "Low".equals(filter))
-                    return filter.equals(t.getPriority());
-                return true;
-            })
-            .filter(t -> t.getTaskText().toLowerCase().contains(search) || (t.getNote() != null && t.getNote().toLowerCase().contains(search)))
-            .toList();
-        todoTasks.setAll(filtered);
-
-        long completed = filtered.stream().filter(ToDoTask::isCompleted).count();
-        long overdue = filtered.stream().filter(t -> !t.isCompleted() && t.getDueDate().isBefore(LocalDate.now())).count();
-        todoSummaryLabel.setText(completed + " of " + filtered.size() + " completed, " + overdue + " overdue");
     }
 
     /**
@@ -306,6 +321,8 @@ public class DashboardHomeController {
         recurringBox.setValue(task.getRecurring() == null ? "None" : task.getRecurring());
         ComboBox<String> priorityBox = new ComboBox<>(FXCollections.observableArrayList("High", "Medium", "Low"));
         priorityBox.setValue(task.getPriority() == null ? "Medium" : task.getPriority());
+        CheckBox recurringActiveBox = new CheckBox("Recurring Active");
+        recurringActiveBox.setSelected(task.isActive());
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
@@ -314,6 +331,24 @@ public class DashboardHomeController {
         grid.addRow(2, new Label("Due Date:"), datePicker);
         grid.addRow(3, new Label("Recurring:"), recurringBox);
         grid.addRow(4, new Label("Priority:"), priorityBox);
+        grid.addRow(5, new Label(""), recurringActiveBox);
+
+        // Exclusions list and button for recurring tasks
+        if (task.getRecurring() != null) {
+            List<LocalDate> exclusions = TodoService.getExclusionsForTask(task.getId());
+            ListView<LocalDate> exclusionList = new ListView<>(FXCollections.observableArrayList(exclusions));
+            exclusionList.setPrefHeight(80);
+            Button removeExclusionBtn = new Button("Remove Exclusion");
+            removeExclusionBtn.setOnAction(e -> {
+                LocalDate selected = exclusionList.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    TodoService.removeRecurringExclusion(task.getId(), selected);
+                    exclusionList.getItems().remove(selected);
+                }
+            });
+            grid.addRow(6, new Label("Excluded Dates:"), exclusionList);
+            grid.addRow(7, new Label(""), removeExclusionBtn);
+        }
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -325,14 +360,19 @@ public class DashboardHomeController {
                 task.setDueDate(datePicker.getValue());
                 task.setRecurring("None".equals(recurringBox.getValue()) ? null : recurringBox.getValue());
                 task.setPriority(priorityBox.getValue());
+                task.setActive(recurringActiveBox.isSelected());
                 return task;
             }
             return null;
         });
 
         dialog.showAndWait().ifPresent(updatedTask -> {
-            TodoService.updateTask(updatedTask);
-            refreshTodoTasks();
+            try {
+                TodoService.updateTask(updatedTask);
+                refreshTodoTasks();
+            } catch (Exception e) {
+                showError("Failed to update task.", e);
+            }
         });
     }
 
@@ -340,6 +380,10 @@ public class DashboardHomeController {
         List<ToDoTask> recTasks = TodoService.getRecurringTasksForUser(currentUserId);
         LocalDate today = LocalDate.now();
         for (ToDoTask task : recTasks) {
+            // FIX: Check for exclusion before generating
+            if (TodoService.isDateExcluded(task.getId(), today)) {
+                continue; // Skip if excluded
+            }
             boolean shouldGenerate = switch (task.getRecurring()) {
                 case "DAILY" -> !TodoService.existsForDate(task, today);
                 case "WEEKLY" -> today.getDayOfWeek() == task.getDueDate().getDayOfWeek() && !TodoService.existsForDate(task, today);
@@ -348,8 +392,18 @@ public class DashboardHomeController {
             };
             if (shouldGenerate) {
                 ToDoTask newTask = new ToDoTask(0, currentUserId, task.getTaskText(), today, false, task.getNote(), task.getPriority(), task.getRecurring());
+                newTask.setParentId(task.getId());
                 TodoService.addTask(newTask);
             }
         }
+    }
+
+    private void showError(String message, Throwable e) {
+        logger.error(message, e);
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText(message);
+        alert.setContentText(e != null ? e.getMessage() : null);
+        alert.showAndWait();
     }
 }
