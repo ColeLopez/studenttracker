@@ -7,6 +7,8 @@ import com.cole.model.RecentActivity;
 import com.cole.model.ToDoTask;
 import com.cole.util.UserSession;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,6 +17,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
+
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +79,9 @@ public class DashboardHomeController {
 
     @FXML private Label activeStudentsLabel;
 
+    private Timeline recentActivityTimeline;
+    private List<RecentActivity> lastLoadedActivities = new java.util.ArrayList<>();
+
     /**
      * Initializes the controller and loads dashboard statistics.
      * This method is called automatically by the JavaFX framework after FXML loading.
@@ -114,6 +121,13 @@ public class DashboardHomeController {
                             task.setCompleted(checkBox.isSelected());
                             TodoService.updateTask(task);
                             refreshTodoTasks();
+                            if (task.isCompleted()) {
+                                ActivityService.logActivity(
+                                    currentUserId,
+                                    "TODO_COMPLETED",
+                                    "Completed to-do: " + task.getTaskText()
+                                );
+                            }
                         }
                     });
                     deleteBtn.setOnAction(e -> {
@@ -130,6 +144,11 @@ public class DashboardHomeController {
                                         TodoService.addRecurringExclusion(exclusionId, task.getDueDate());
                                         TodoService.deleteTask(task.getId());
                                         refreshTodoTasks();
+                                        ActivityService.logActivity(
+                                            currentUserId,
+                                            "TODO_DELETED",
+                                            "Deleted to-do: " + task.getTaskText()
+                                        );
                                     } catch (Exception ex) {
                                         showError("Failed to delete task.", ex);
                                     }
@@ -207,6 +226,13 @@ public class DashboardHomeController {
         // Populate combos (fetch user list and roles from DB/service)
         userFilterCombo.setItems(FXCollections.observableArrayList(ActivityService.getAllUsernames()));
         roleFilterCombo.setItems(FXCollections.observableArrayList("ADMIN", "MANAGER", "USER"));
+
+        // Start periodic refresh for recent activity
+        recentActivityTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(10), e -> refreshRecentActivityIfChanged())
+        );
+        recentActivityTimeline.setCycleCount(Timeline.INDEFINITE);
+        recentActivityTimeline.play();
     }
 
     /**
@@ -437,6 +463,28 @@ public class DashboardHomeController {
         recentActivityTable.setItems(FXCollections.observableArrayList(activities));
     }
 
+    // Efficient refresh: only update if changed
+    private void refreshRecentActivityIfChanged() {
+        List<RecentActivity> activities = ActivityService.getRecentActivities(10);
+        // Compare by id and timestamp for efficiency
+        boolean changed = false;
+        if (activities.size() != lastLoadedActivities.size()) {
+            changed = true;
+        } else {
+            for (int i = 0; i < activities.size(); i++) {
+                if (activities.get(i).getId() != lastLoadedActivities.get(i).getId() ||
+                    !activities.get(i).getActivityTime().equals(lastLoadedActivities.get(i).getActivityTime())) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (changed) {
+            recentActivityTable.setItems(FXCollections.observableArrayList(activities));
+            lastLoadedActivities = activities;
+        }
+    }
+
     @FXML
     private void handleActivityFilter() {
         String selectedUser = userFilterCombo.getValue();
@@ -445,5 +493,13 @@ public class DashboardHomeController {
         String role = selectedRole != null ? selectedRole : null;
         List<RecentActivity> activities = ActivityService.getRecentActivitiesByUserOrRole(userId, role, 10);
         recentActivityTable.setItems(FXCollections.observableArrayList(activities));
+    }
+
+    // Optional: stop/start timeline if dashboard is hidden/shown
+    public void onDashboardHidden() {
+        if (recentActivityTimeline != null) recentActivityTimeline.stop();
+    }
+    public void onDashboardShown() {
+        if (recentActivityTimeline != null) recentActivityTimeline.play();
     }
 }
