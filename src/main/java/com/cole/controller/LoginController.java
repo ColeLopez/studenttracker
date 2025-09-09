@@ -2,6 +2,7 @@ package com.cole.controller;
 
 import java.io.IOException;
 
+import com.cole.Service.ActivityService;
 import com.cole.Service.AuthService;
 import com.cole.model.User;
 import com.cole.util.UserSession; // <-- Use util, not session package
@@ -91,6 +92,12 @@ public class LoginController {
                     stage.setScene(new Scene(root));
                     stage.setTitle("Dashboard");
                     stage.centerOnScreen();
+
+                    ActivityService.logActivity(
+                        user.getId(),
+                        "USER_LOGIN",
+                        "User " + username + " logged in."
+                    );
                 } catch (IOException ex) {
                     logger.error("Failed to load dashboard.fxml", ex);
                     showAlert(Alert.AlertType.ERROR, "Navigation Error", "Could not load dashboard.");
