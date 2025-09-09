@@ -1,5 +1,6 @@
 package com.cole.controller;
 
+import com.cole.Service.ActivityService;
 import com.cole.Service.SLPService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +117,10 @@ public class SLPController {
             task.setOnSucceeded(e -> {
                 if (task.getValue()) {
                     showInfo("SLP Added", "The SLP was successfully added.");
+                    // Replace 0 with the actual user ID if available
+                    ActivityService.logActivity(0, "Add SLP", "Added new SLP: " + slp.getSlpCode() + " - " + slp.getName());
                     loadSLPs();
+
                 } else {
                     showError("Duplicate SLP Code", "An SLP with this code already exists or could not be added.");
                 }
@@ -168,6 +172,7 @@ public class SLPController {
             task.setOnSucceeded(e -> {
                 if (task.getValue()) {
                     showInfo("SLP Updated", "The SLP was successfully updated.");
+                    ActivityService.logActivity(0, "Edit SLP", "Edited SLP ID " + selected.getId() + " to: " + newCode + " - " + newName);
                     loadSLPs();
                 } else {
                     showError("Duplicate SLP Code", "An SLP with this code already exists or could not be updated.");
@@ -209,6 +214,7 @@ public class SLPController {
                 task.setOnSucceeded(e -> {
                     if (task.getValue()) {
                         showInfo("SLP Deleted", "The SLP was successfully deleted.");
+                        ActivityService.logActivity(0, "Delete SLP", "Deleted SLP: " + selected.getSlpCode() + " - " + selected.getName());
                         loadSLPs();
                     } else {
                         showError("Delete Failed", "No SLP was deleted. Please try again.");
