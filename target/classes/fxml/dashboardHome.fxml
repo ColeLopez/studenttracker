@@ -80,8 +80,7 @@
     <HBox alignment="TOP_CENTER" spacing="24" style="-fx-padding: 0 20 20 20;" VBox.vgrow="ALWAYS">
         <children>
             <!-- To-Do List -->
-            <VBox prefHeight="352.0" prefWidth="398.0" spacing="10"
-                  style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
+            <VBox prefHeight="352.0" prefWidth="398.0" spacing="10" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label style="-fx-font-size: 16; -fx-font-weight: bold;" text="To-Do List" />
@@ -93,8 +92,8 @@
                         <Label fx:id="todoSummaryLabel" />
                     </HBox>
                     <HBox spacing="8">
-                        <ComboBox fx:id="filterCombo" promptText="Filter" prefWidth="110"/>
-                        <TextField fx:id="searchField" promptText="Search..." HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="filterCombo" prefWidth="110" promptText="Filter" />
+                        <TextField fx:id="searchField" promptText="Search..." HBox.hgrow="ALWAYS" />
                     </HBox>
                     <ListView fx:id="todoListView" prefHeight="203.0" VBox.vgrow="ALWAYS" />
                     <VBox spacing="5">
@@ -103,8 +102,8 @@
                             <TextField fx:id="todoNoteInput" promptText="Note (optional)" />
                         </HBox>
                         <HBox spacing="10">
-                            <ComboBox fx:id="todoPriorityCombo" promptText="Priority" prefWidth="100"/>
-                            <ComboBox fx:id="todoRecurringCombo" promptText="Recurring" prefWidth="100"/>
+                            <ComboBox fx:id="todoPriorityCombo" prefWidth="100" promptText="Priority" />
+                            <ComboBox fx:id="todoRecurringCombo" prefWidth="100" promptText="Recurring" />
                             <Button onAction="#handleAddTodo" text="Add" />
                         </HBox>
                     </VBox>
@@ -115,17 +114,17 @@
             <VBox prefHeight="352.0" prefWidth="374.0" spacing="10" style="-fx-background-color: #fff; -fx-background-radius: 10; -fx-padding: 16; -fx-effect: dropshadow(gaussian, #b0b0b044, 8, 0, 0, 2);" HBox.hgrow="ALWAYS">
                 <children>
                     <Label style="-fx-font-size: 16; -fx-font-weight: bold;" text="Recent Activity" />
-                    <TableView fx:id="recentActivityTable" prefHeight="150">
+                    <TableView fx:id="recentActivityTable" prefHeight="150" VBox.vgrow="ALWAYS">
                         <columns>
-                            <TableColumn text="Time" fx:id="activityTimeColumn"/>
-                            <TableColumn text="Type" fx:id="activityTypeColumn"/>
-                            <TableColumn text="Description" fx:id="activityDescriptionColumn"/>
+                            <TableColumn fx:id="activityTimeColumn" text="Time" />
+                            <TableColumn fx:id="activityTypeColumn" text="Type" />
+                            <TableColumn fx:id="activityDescriptionColumn" text="Description" />
                         </columns>
                     </TableView>
                     <HBox spacing="10">
-    <ComboBox fx:id="userFilterCombo" promptText="User"/>
-    <ComboBox fx:id="roleFilterCombo" promptText="Role"/>
-    <Button text="Apply Filter" onAction="#handleActivityFilter"/>
+    <ComboBox fx:id="userFilterCombo" promptText="User" />
+    <ComboBox fx:id="roleFilterCombo" promptText="Role" />
+    <Button onAction="#handleActivityFilter" text="Apply Filter" />
 </HBox>
                 </children>
             </VBox>
