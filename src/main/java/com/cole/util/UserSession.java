@@ -27,6 +27,13 @@ public class UserSession {
         return user != null ? user.getId() : -1;
     }
 
+    public static boolean isHighLevelUser() {
+        String role = getInstance().getUserRole();
+        return "ADMIN".equalsIgnoreCase(role)
+            || "MANAGER".equalsIgnoreCase(role)
+            || "TRAINING_ADVISOR".equalsIgnoreCase(role);
+    }
+
     public String getUserRole() {
         return user != null ? user.getRole() : null;
     }
