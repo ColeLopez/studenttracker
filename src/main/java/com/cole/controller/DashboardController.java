@@ -63,6 +63,8 @@ public class DashboardController {
     private AnchorPane contentArea;
     private final StudentReportsService reportsService = new StudentReportsService(); // Assuming ReportsService is used for report generation
 
+    private DashboardHomeController dashboardHomeController;
+
     /**
      * Initializes the controller and loads the dashboard home view.
      * This method is called automatically by the JavaFX framework after FXML loading.
@@ -496,4 +498,31 @@ public class DashboardController {
         }
     }
     
+    // When showing the dashboard home:
+    public void showDashboardHome() {
+        try {
+            // Load FXML and get controller
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dashboardHome.fxml"));
+            Parent dashboardHomeRoot = loader.load();
+            dashboardHomeController = loader.getController();
+            contentArea.getChildren().setAll(dashboardHomeRoot);
+            AnchorPane.setTopAnchor(dashboardHomeRoot, 0.0);
+            AnchorPane.setBottomAnchor(dashboardHomeRoot, 0.0);
+            AnchorPane.setLeftAnchor(dashboardHomeRoot, 0.0);
+            AnchorPane.setRightAnchor(dashboardHomeRoot, 0.0);
+
+            // Start real-time refresh
+            dashboardHomeController.onDashboardShown();
+        } catch (IOException e) {
+            logger.error("Failed to load dashboard home FXML", e);
+            showError("Error", "Could not load dashboard home.");
+        }
+    }
+
+    // When switching away from dashboard home:
+    public void hideDashboardHome() {
+        if (dashboardHomeController != null) {
+            dashboardHomeController.onDashboardHidden();
+        }
+    }
 }
