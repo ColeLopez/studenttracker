@@ -13,6 +13,7 @@ import com.cole.model.StudentReportData;
 import com.cole.util.DBUtil;
 import com.cole.model.SLP;
 import com.cole.Service.SLPService;
+import com.cole.Service.ActivityService;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -20,7 +21,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableCell;
@@ -282,6 +282,9 @@ public class VirtualRecordCardController {
         if (result.isEmpty() || result.get() != javafx.scene.control.ButtonType.OK) {
             return;
         }
+
+        String oldStudentNumber = selectedStudent.getStudentNumber();
+
         // Delete all related data for the student, then the student record itself
         String[] sqls = new String[] {
             "DELETE FROM student_modules WHERE student_id = ?",
@@ -304,6 +307,26 @@ public class VirtualRecordCardController {
             showError("Error deleting student", e.getMessage());
             return;
         }
+
+        // Log the deletion activity
+        int userId = com.cole.util.UserSession.getInstance().getUserId();
+        String studentNum = selectedStudent.getStudentNumber();
+        String firstName = selectedStudent.getFirstName();
+        String lastName = selectedStudent.getLastName();
+        String slp = selectedStudent.getSlp();
+        String email = selectedStudent.getEmail();
+        String idNumber = selectedStudent.getIdNumber();
+        String phone = selectedStudent.getPhoneNumber();
+        String branch = selectedStudent.getBranch();
+        String status = selectedStudent.getStatus();
+
+        ActivityService.logActivity(
+            userId,
+            "STUDENT_DELETED",
+            "Deleted student " + studentNum + " (" + firstName + " " + lastName + "), SLP: " + slp +
+            ", Email: " + email + ", ID: " + idNumber + ", Phone: " + phone + ", Branch: " + branch + ", Status: " + status
+        );
+
         // Close the window
         handleClose();
         // Notify parent to refresh student list
@@ -444,6 +467,16 @@ private void handleStudentReport() {
             String newSlpName = newSlp.getName();
             String oldSlp = selectedStudent.getSlp();
 
+            // Store old values before update (at the start of handleEditStudent)
+            String oldFirstName = selectedStudent.getFirstName();
+            String oldSecondName = selectedStudent.getSecondName();
+            String oldLastName = selectedStudent.getLastName();
+            String oldIdNumber = selectedStudent.getIdNumber();
+            String oldEmail = selectedStudent.getEmail();
+            String oldPhone = selectedStudent.getPhoneNumber();
+            String oldBranch = selectedStudent.getBranch();
+            String oldStatus = selectedStudent.getStatus();
+
             try (Connection conn = DBUtil.getConnection()) {
                 String sql = "UPDATE students SET first_name = ?, second_name = ?, last_name = ?, id_number = ?, email = ?, phone = ?, branch = ?, current_slp_id = ?, status = ? WHERE student_id = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -518,6 +551,48 @@ private void handleStudentReport() {
             } catch (SQLException e) {
                 logger.error("Error updating student", e);
                 showError("Error updating student", e.getMessage());
+            }
+
+            // Log the activity for student edit
+            int userId = com.cole.util.UserSession.getInstance().getUserId();
+            String studentNum = selectedStudent.getStudentNumber();
+
+            String newFirstName = (String) values.get(0);
+            String newSecondName = (String) values.get(1);
+            String newLastName = (String) values.get(2);
+            String newIdNumber = (String) values.get(3);
+            String newEmail = (String) values.get(4);
+            String newPhone = (String) values.get(5);
+            String newBranch = (String) values.get(7);
+            String newStatus = (String) values.get(8);
+            // String newSlpName = newSlp.getName(); // Removed duplicate declaration
+
+            if (!oldFirstName.equals(newFirstName)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed first name for student " + studentNum + " from '" + oldFirstName + "' to '" + newFirstName + "'");
+            }
+            if (!oldSecondName.equals(newSecondName)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed second name for student " + studentNum + " from '" + oldSecondName + "' to '" + newSecondName + "'");
+            }
+            if (!oldLastName.equals(newLastName)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed last name for student " + studentNum + " from '" + oldLastName + "' to '" + newLastName + "'");
+            }
+            if (!oldIdNumber.equals(newIdNumber)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed ID number for student " + studentNum + " from '" + oldIdNumber + "' to '" + newIdNumber + "'");
+            }
+            if (!oldEmail.equals(newEmail)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed email for student " + studentNum + " from '" + oldEmail + "' to '" + newEmail + "'");
+            }
+            if (!oldPhone.equals(newPhone)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed phone for student " + studentNum + " from '" + oldPhone + "' to '" + newPhone + "'");
+            }
+            if (!oldBranch.equals(newBranch)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed branch for student " + studentNum + " from '" + oldBranch + "' to '" + newBranch + "'");
+            }
+            if (!oldStatus.equals(newStatus)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed status for student " + studentNum + " from '" + oldStatus + "' to '" + newStatus + "'");
+            }
+            if (!oldSlp.equals(newSlpName)) {
+                ActivityService.logActivity(userId, "STUDENT_EDITED", "Changed SLP for student " + studentNum + " from '" + oldSlp + "' to '" + newSlpName + "'");
             }
 
             // Always check graduation flags after editing student
