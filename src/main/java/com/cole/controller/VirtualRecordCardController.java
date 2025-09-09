@@ -685,13 +685,14 @@ private void handleStudentReport() {
     @FXML private DatePicker followUpDueDateField;
     @FXML private TextField followUpDescField;
 
-    @FXML private Label nameLabel;
-    @FXML private Label studentNumberLabel;
-    @FXML private Label slpLabel;
-    @FXML private Label statusLabel;
-    @FXML private Label emailLabel;
-    @FXML private Label phoneLabel;
-    @FXML private Label branchLabel;
+    @FXML private TextField studentNameField;
+    @FXML private TextField studentNumberField;
+    @FXML private TextField studentSlpField;
+    @FXML private TextField studentStatusField;
+    @FXML private TextField studentEmailField;
+    @FXML private TextField studentIDNumberField;
+    @FXML private TextField studentPhoneField;
+    @FXML private TextField studentBranchField;
 
     private static final Logger logger = LoggerFactory.getLogger(VirtualRecordCardController.class);
 
@@ -706,6 +707,7 @@ private void handleStudentReport() {
      */
     public void setStudent(Student student) {
         this.selectedStudent = student;
+        syncStudentModulesWithSLP();
         loadStudentDetails();
         loadStudentModules();
         loadNotes();
@@ -858,13 +860,14 @@ private void handleStudentReport() {
             showError("No student selected", "Please select a student.");
             return;
         }
-        if (nameLabel != null) nameLabel.setText("Full Name: " + selectedStudent.getFirstName() + " " + selectedStudent.getSecondName() + " " + selectedStudent.getLastName());
-        if (studentNumberLabel != null) studentNumberLabel.setText("Student Number: " + selectedStudent.getStudentNumber());
-        if (slpLabel != null) slpLabel.setText("SLP: " + selectedStudent.getSlp());
-        if (statusLabel != null) statusLabel.setText("Status: " + selectedStudent.getStatus());
-        if (emailLabel != null) emailLabel.setText("Email: " + selectedStudent.getEmail());
-        if (phoneLabel != null) phoneLabel.setText("Phone: " + selectedStudent.getPhoneNumber());
-        if (branchLabel != null) branchLabel.setText("Branch: " + selectedStudent.getBranch());
+        if (studentNameField != null) studentNameField.setText(selectedStudent.getFirstName() + " " + selectedStudent.getSecondName() + " " + selectedStudent.getLastName());
+        if (studentNumberField != null) studentNumberField.setText(selectedStudent.getStudentNumber());
+        if (studentSlpField != null) studentSlpField.setText(selectedStudent.getSlp());
+        if (studentStatusField != null) studentStatusField.setText(selectedStudent.getStatus());
+        if (studentEmailField != null) studentEmailField.setText(selectedStudent.getEmail());
+        if (studentIDNumberField != null) studentIDNumberField.setText(selectedStudent.getIdNumber());
+        if (studentPhoneField != null) studentPhoneField.setText(selectedStudent.getPhoneNumber());
+        if (studentBranchField != null) studentBranchField.setText(selectedStudent.getBranch());
     }
 
     /**
@@ -1121,8 +1124,98 @@ private void handleStudentReport() {
         }
 
         // Update the status label in the UI
-        if (statusLabel != null) {
-            statusLabel.setText("Status: " + selectedStudent.getStatus());
+        if (studentStatusField != null) {
+            studentStatusField.setText("Status: " + selectedStudent.getStatus());
+        }
+    }
+
+    /**
+ * Ensures the student's modules exactly match the modules currently linked to their SLP.
+ * Removes modules not in the SLP and adds any new ones from the SLP.
+ */
+    private void syncStudentModulesWithSLP() {
+        if (selectedStudent == null) return;
+        int studentId = selectedStudent.getId();
+        int slpId = -1;
+
+        // Get the student's current SLP ID
+        String getSlpIdSql = "SELECT current_slp_id FROM students WHERE student_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+            PreparedStatement getSlpStmt = conn.prepareStatement(getSlpIdSql)) {
+            getSlpStmt.setInt(1, studentId);
+            try (ResultSet rs = getSlpStmt.executeQuery()) {
+                if (rs.next()) {
+                    slpId = rs.getInt("current_slp_id");
+                }
+            }
+            if (slpId == -1) return;
+
+            // 1. Get all module IDs currently linked to the SLP
+            List<Integer> slpModuleIds = new java.util.ArrayList<>();
+            String slpModulesSql = "SELECT module_id FROM slp_modules WHERE slp_id = ?";
+            try (PreparedStatement slpModulesStmt = conn.prepareStatement(slpModulesSql)) {
+                slpModulesStmt.setInt(1, slpId);
+                try (ResultSet rs = slpModulesStmt.executeQuery()) {
+                    while (rs.next()) {
+                        slpModuleIds.add(rs.getInt("module_id"));
+                    }
+                }
+            }
+
+            // 2. Get all module IDs currently assigned to the student (excluding replaced)
+            List<Integer> studentModuleIds = new java.util.ArrayList<>();
+            String studentModulesSql = "SELECT module_id FROM student_modules WHERE student_id = ? AND (status IS NULL OR status != 'replaced')";
+            try (PreparedStatement studentModulesStmt = conn.prepareStatement(studentModulesSql)) {
+                studentModulesStmt.setInt(1, studentId);
+                try (ResultSet rs = studentModulesStmt.executeQuery()) {
+                    while (rs.next()) {
+                        studentModuleIds.add(rs.getInt("module_id"));
+                    }
+                }
+            }
+
+            // 3. Remove modules from student that are no longer in the SLP
+            for (Integer moduleId : studentModuleIds) {
+                if (!slpModuleIds.contains(moduleId)) {
+                    String deleteSql = "DELETE FROM student_modules WHERE student_id = ? AND module_id = ?";
+                    try (PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+                        deleteStmt.setInt(1, studentId);
+                        deleteStmt.setInt(2, moduleId);
+                        deleteStmt.executeUpdate();
+                    }
+                }
+            }
+
+            // 4. Add modules to student that are in the SLP but not yet assigned
+            String getModuleDetailsSql = "SELECT module_code, name FROM modules WHERE module_id = ?";
+            for (Integer moduleId : slpModuleIds) {
+                if (!studentModuleIds.contains(moduleId)) {
+                    // Get module details
+                    String moduleCode = null, moduleName = null;
+                    try (PreparedStatement getModuleStmt = conn.prepareStatement(getModuleDetailsSql)) {
+                        getModuleStmt.setInt(1, moduleId);
+                        try (ResultSet rs = getModuleStmt.executeQuery()) {
+                            if (rs.next()) {
+                                moduleCode = rs.getString("module_code");
+                                moduleName = rs.getString("name");
+                            }
+                        }
+                    }
+                    if (moduleCode != null && moduleName != null) {
+                        String insertSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, formative, summative, supplementary, received_book) VALUES (?, ?, ?, ?, 0, 0, 0, 0)";
+                        try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                            insertStmt.setInt(1, studentId);
+                            insertStmt.setInt(2, moduleId);
+                            insertStmt.setString(3, moduleCode);
+                            insertStmt.setString(4, moduleName);
+                            insertStmt.executeUpdate();
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error syncing student modules with SLP", e);
+            showError("Sync Error", "Could not sync modules with SLP: " + e.getMessage());
         }
     }
 }
