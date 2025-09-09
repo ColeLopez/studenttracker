@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.cole.Service.ActivityService;
 import com.cole.Service.EmailServices;
 import com.cole.model.FollowUpRow;
 import com.cole.util.DBUtil;
@@ -290,6 +291,7 @@ public class FollowUpController {
             stmt.setBoolean(1, completed);
             stmt.setInt(2, followUpId);
             stmt.executeUpdate();
+            ActivityService.logActivity(0, "Update Follow-Up", "Updated follow-up ID " + followUpId + " to completed=" + completed);
         } catch (Exception e) {
             logger.error("Error updating follow-up completed status", e);
             showError("Update Error", "Could not update follow-up status.");
