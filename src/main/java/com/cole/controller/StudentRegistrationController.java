@@ -2,8 +2,11 @@ package com.cole.controller;
 
 import com.cole.model.SLP;
 import com.cole.model.Module;
+import com.cole.Service.ActivityService;
 import com.cole.Service.SLPModuleService;
 import com.cole.util.DBUtil;
+import com.cole.util.UserSession;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -207,6 +210,12 @@ public class StudentRegistrationController {
             success.setHeaderText(null);
             success.setContentText("Student registered successfully!");
             success.showAndWait();
+
+            ActivityService.logActivity(
+                UserSession.getInstance().getUserId(),
+                "STUDENT_REGISTERED",
+                "Registered student: " + studentNumber + " (" + firstName + " " + lastName + ")"
+            );
 
             clearForm();
         } catch (SQLException e) {
