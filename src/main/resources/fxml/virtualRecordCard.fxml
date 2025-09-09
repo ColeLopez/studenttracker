@@ -15,6 +15,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <BorderPane prefHeight="720.0" prefWidth="1000.0" style="-fx-background-color: linear-gradient(to bottom right, #f8f9fa, #e9ecef);" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cole.controller.VirtualRecordCardController">
 
@@ -36,19 +37,25 @@
                     </columnConstraints>
                     <children>
                         <Label style="-fx-font-weight: bold;" text="Full Name:" />
-                        <Label fx:id="nameLabel" GridPane.columnIndex="1" />
+                  <TextField fx:id="studentNameField" editable="false" focusTraversable="false" promptText="Full Name" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="1" />
                         <Label style="-fx-font-weight: bold;" text="Student Number:" GridPane.columnIndex="2" />
-                        <Label fx:id="studentNumberLabel" GridPane.columnIndex="3" />
+                  <TextField fx:id="studentNumberField" editable="false" focusTraversable="false" promptText="Student Number" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="3" />
                         <Label style="-fx-font-weight: bold;" text="Email:" GridPane.rowIndex="1" />
-                        <Label fx:id="emailLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <TextField fx:id="studentEmailField" editable="false" focusTraversable="false" promptText="Email" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <Label style="-fx-font-weight: bold;" text="Phone:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label fx:id="phoneLabel" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                        <Label style="-fx-font-weight: bold;" text="Branch:" GridPane.rowIndex="2" />
-                        <Label fx:id="branchLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <TextField fx:id="studentPhoneField" editable="false" focusTraversable="false" promptText="Phone" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                  <Label text="ID Number:" GridPane.rowIndex="2">
+                     <font>
+                        <Font name="System Bold" size="12.0" />
+                     </font>
+                  </Label>
+                  <TextField fx:id="studentIDNumberField" editable="false" focusTraversable="false" promptText="ID Number" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <Label style="-fx-font-weight: bold;" text="Status:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                        <Label fx:id="statusLabel" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                        <Label style="-fx-font-weight: bold;" text="SLP:" GridPane.rowIndex="3" />
-                        <Label fx:id="slpLabel" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <TextField fx:id="studentStatusField" editable="false" focusTraversable="false" promptText="Status" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                        <Label style="-fx-font-weight: bold;" text="Branch:" GridPane.rowIndex="3" />
+                  <TextField fx:id="studentBranchField" editable="false" focusTraversable="false" promptText="Branch" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <Label style="-fx-font-weight: bold;" text="SLP:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                  <TextField fx:id="studentSlpField" editable="false" focusTraversable="false" promptText="SLP" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;" GridPane.columnIndex="3" GridPane.rowIndex="3" />
                     </children>
                <rowConstraints>
                   <RowConstraints />
