@@ -91,6 +91,8 @@ public final class DBInit {
             "supplementary INTEGER DEFAULT 0, " +
             "status TEXT, " +
             "received_book INTEGER DEFAULT 0, " +
+            "signature_path TEXT, " +
+            "date_issued TEXT, " +
             "registration_type TEXT, " +
             "FOREIGN KEY (student_id) REFERENCES students(student_id), " +
             "FOREIGN KEY (module_id) REFERENCES modules(module_id)" +
