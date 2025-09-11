@@ -10,21 +10,26 @@ public class StudentModule {
     private Double summative;
     private Double supplementary;
     private int passRate = 50; // Default to 50 if not set
+    private String signaturePath;
+    private String dateIssued; // New field for date issued
 
     public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName, String examType, boolean receivedBook) {
-        this(studentId, moduleId, moduleCode, moduleName, receivedBook, null, null, null);
+        this(studentId, moduleId, moduleCode, moduleName, null, null, null, receivedBook, null, null);
     }
 
-    public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName, boolean receivedBook, Double formative, Double summative, Double supplementary) {
+    public StudentModule(int studentId, int moduleId, String moduleCode, String moduleName,
+                        Double formative, Double summative, Double supplementary,
+                        boolean receivedBook, String signaturePath, String dateIssued) {
         this.studentId = studentId;
         this.moduleId = moduleId;
         this.moduleCode = moduleCode;
         this.moduleName = moduleName;
-        this.receivedBook = receivedBook;
         this.formative = formative;
         this.summative = summative;
         this.supplementary = supplementary;
-        // passRate will be set by setter after construction if needed
+        this.receivedBook = receivedBook;
+        this.signaturePath = signaturePath;
+        this.dateIssued = dateIssued;
     }
 
     public int getPassRate() {
@@ -82,5 +87,21 @@ public class StudentModule {
 
     public void setSupplementary(Double supplementary) {
         this.supplementary = supplementary;
+    }
+
+    public String getSignaturePath() {
+        return signaturePath;
+    }
+
+    public void setSignaturePath(String signaturePath) {
+        this.signaturePath = signaturePath;
+    }
+
+    public String getDateIssued() {
+        return dateIssued;
+    }
+
+    public void setDateIssued(String dateIssued) {
+        this.dateIssued = dateIssued;
     }
 }
