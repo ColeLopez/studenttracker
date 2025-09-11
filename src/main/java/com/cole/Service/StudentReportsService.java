@@ -86,16 +86,21 @@ public class StudentReportsService {
                         rs.getInt("module_id"),
                         rs.getString("module_code"),
                         rs.getString("module_name"),
-                        rs.getBoolean("received_book"),
                         rs.getObject("formative") != null ? rs.getDouble("formative") : 0.0,
                         rs.getObject("summative") != null ? rs.getDouble("summative") : 0.0,
-                        rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : 0.0
+                        rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : 0.0,
+                        rs.getBoolean("received_book"),
+                        rs.getString("signature_path"),
+                        rs.getString("date_issued")
                     );
                     // Set passRate if setter exists
                     try {
                         int passRate = rs.getObject("pass_rate") != null ? rs.getInt("pass_rate") : 50;
                         sm.setPassRate(passRate);
                     } catch (Exception ignore) {}
+                    // Set signature and date issued
+                    sm.setSignaturePath(rs.getString("signature_path"));
+                    sm.setDateIssued(rs.getString("date_issued"));
                     modules.add(sm);
                 }
             }
@@ -248,7 +253,7 @@ public class StudentReportsService {
             y -= 18;
 
             Student s = reportData.getStudent();
-            contentStream.setFont(PDType1Font.HELVETICA, 12);
+            contentStream.setFont(PDType1Font.HELVETICA, 10);
             String[][] info = {
                 {"Name", s.getFirstName() + " " + s.getSecondName() + " " + s.getLastName()},
                 {"Student Number", s.getStudentNumber()},
@@ -283,25 +288,34 @@ public class StudentReportsService {
             contentStream.stroke();
             y -= 18;
 
-            // Table column positions (Name column is now shorter)
-            float[] colX = {leftMargin, leftMargin + 60, leftMargin + 180, leftMargin + 260, leftMargin + 340, leftMargin + 430};
-            String[] headers = {"Code", "Name", "Formative", "Summative", "Supplementary", "Pass Req"};
+            // Table column setup to fill width
+            float tableWidth = rightMargin - leftMargin;
+            int numCols = 8;
+            float colWidth = tableWidth / numCols;
+            float[] colX = new float[numCols];
+            for (int i = 0; i < numCols; i++) {
+                colX[i] = leftMargin + i * colWidth;
+            }
+            String[] headers = {"Code", "Name", "FA1", "SA1", "Resub", "Pass", "Date Issued", "Signature"};
+            float cellHeight = 18;
+            float sigWidth = colWidth - 4; // leave a little padding
+            float sigHeight = 16;
 
             // Header background
             contentStream.setNonStrokingColor(new Color(230, 230, 250));
-            contentStream.addRect(leftMargin - 2, y - 4, rightMargin - leftMargin + 4, 18);
+            contentStream.addRect(leftMargin, y - 4, tableWidth, cellHeight);
             contentStream.fill();
             contentStream.setNonStrokingColor(Color.BLACK);
 
             // Header text
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 11);
             for (int i = 0; i < headers.length; i++) {
                 contentStream.beginText();
-                contentStream.newLineAtOffset(colX[i], y + 2);
+                contentStream.newLineAtOffset(colX[i] + 2, y + 2);
                 contentStream.showText(headers[i]);
                 contentStream.endText();
             }
-            y -= 18;
+            y -= 22;
 
             // Table rows
             contentStream.setFont(PDType1Font.HELVETICA, 11);
@@ -319,52 +333,52 @@ public class StudentReportsService {
                     String.format("%.2f%%", m.getFormative()),
                     String.format("%.2f%%", m.getSummative()),
                     String.format("%.2f%%", m.getSupplementary()),
-                    m.getPassRate() + "%"
+                    m.getPassRate() + "%",
+                    m.getDateIssued() != null ? m.getDateIssued() : ""
                 };
 
                 float nameColWidth = colX[2] - colX[1] - 5;
-                List<String> wrappedName = wrapText(row[1], PDType1Font.HELVETICA, 11, nameColWidth);
+                List<String> wrappedName = wrapText(row[1], PDType1Font.HELVETICA, 10, nameColWidth);
                 int maxLines = Math.max(1, wrappedName.size());
 
-                // Draw all lines for this module row
                 for (int lineIdx = 0; lineIdx < maxLines; lineIdx++) {
                     // Code column
                     contentStream.beginText();
-                    contentStream.newLineAtOffset(colX[0], y - (lineIdx * 12));
+                    contentStream.newLineAtOffset(colX[0] + 2, y - (lineIdx * cellHeight));
                     contentStream.showText(lineIdx == 0 ? row[0] : "");
                     contentStream.endText();
 
                     // Name column (wrapped)
                     contentStream.beginText();
-                    contentStream.newLineAtOffset(colX[1], y - (lineIdx * 12));
+                    contentStream.newLineAtOffset(colX[1] + 2, y - (lineIdx * cellHeight));
                     contentStream.showText(wrappedName.get(lineIdx));
                     contentStream.endText();
 
-                    // Formative, Summative, Supplementary, Pass Req columns (only on first line)
+                    // FA1, SA1, Resub, Pass, Date Issued columns (only on first line)
                     if (lineIdx == 0) {
-                        for (int i = 2; i < row.length; i++) {
+                        for (int i = 2; i < 7; i++) {
                             contentStream.beginText();
-                            contentStream.newLineAtOffset(colX[i], y);
-                            if (i >= 2 && i <= 4) {
-                                double[] marks = {m.getFormative(), m.getSummative(), m.getSupplementary()};
-                                int passRate = m.getPassRate();
-                                if (marks[i - 2] < passRate) {
-                                    contentStream.setNonStrokingColor(new Color(220, 0, 0)); // red for fail
-                                } else {
-                                    contentStream.setNonStrokingColor(Color.BLACK); // black for pass
-                                }
-                            } else {
-                                contentStream.setNonStrokingColor(Color.BLACK);
-                            }
+                            contentStream.newLineAtOffset(colX[i] + 2, y);
                             contentStream.showText(row[i]);
                             contentStream.endText();
                         }
                     }
-                    contentStream.setNonStrokingColor(Color.BLACK); // reset color
                 }
-
-                // Now update y for the next row
-                y -= maxLines * 12;
+                // Draw signature image ONCE, vertically centered for the row
+                if (m.getSignaturePath() != null && !m.getSignaturePath().isEmpty()) {
+                    try {
+                        File sigFile = new File(m.getSignaturePath());
+                        if (sigFile.exists()) {
+                            PDImageXObject sigImg = PDImageXObject.createFromFileByContent(sigFile, document);
+                            float sigX = colX[7] + 2;
+                            float sigY = y - ((maxLines * cellHeight) - sigHeight) / 2;
+                            contentStream.drawImage(sigImg, sigX, sigY, sigWidth, sigHeight);
+                        }
+                    } catch (Exception ex) {
+                        // Ignore signature image errors
+                    }
+                }
+                y -= maxLines * cellHeight;
             }
             y -= 10;
 
@@ -381,7 +395,7 @@ public class StudentReportsService {
             contentStream.stroke();
             y -= 18;
 
-            contentStream.setFont(PDType1Font.HELVETICA, 11);
+            contentStream.setFont(PDType1Font.HELVETICA, 10);
             float notesMaxWidth = rightMargin - leftMargin - 20;
             for (Note n : reportData.getNotes()) {
                 if (y < 60) {
@@ -416,7 +430,7 @@ public class StudentReportsService {
             contentStream.stroke();
             y -= 18;
 
-            contentStream.setFont(PDType1Font.HELVETICA, 11);
+            contentStream.setFont(PDType1Font.HELVETICA, 10);
             float followUpMaxWidth = rightMargin - leftMargin - 20;
             for (FollowUp f : reportData.getFollowUps()) {
                 if (y < 60) {
