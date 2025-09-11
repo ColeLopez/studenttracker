@@ -80,6 +80,8 @@
                                 <TableColumn fx:id="moduleCodeColumn" text="Module Code" />
                                 <TableColumn fx:id="moduleNameColumn" text="Module Name" />
                                 <TableColumn fx:id="bookIssuedColumn" text="Book Issued" />
+                                <TableColumn fx:id="dateIssuedColumn" text="Date Issued" />
+                                <TableColumn fx:id="signatureColumn" text="Signature" />
                                 <TableColumn fx:id="formativeColumn" text="Formative %" />
                                 <TableColumn fx:id="summativeColumn" text="Summative %" />
                                 <TableColumn fx:id="supplementaryColumn" text="Supplementary %" />
