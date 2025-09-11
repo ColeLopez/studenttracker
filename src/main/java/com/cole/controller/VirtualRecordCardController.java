@@ -32,6 +32,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.control.DatePicker;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -237,6 +238,8 @@ public class VirtualRecordCardController {
     @FXML private TableColumn<StudentModule, String> moduleNameColumn;
     @FXML private TableColumn<StudentModule, String> examTypeColumn;
     @FXML private TableColumn<StudentModule, Boolean> bookIssuedColumn;
+    @FXML private TableColumn<StudentModule, String> signatureColumn; // New column for signatures
+    @FXML private TableColumn<StudentModule, String> dateIssuedColumn; // New column for date issued
 
     @FXML private TableView<FollowUp> followUpTable;
     @FXML private TableColumn<FollowUp, String> dueDateColumn;
@@ -617,13 +620,10 @@ private void handleStudentReport() {
             showError("No student/module selected", "Please select a student and module to reregister.");
             return;
         }
-        // 1. Mark old module as replaced (for audit/history)
-        String markOldSql = "UPDATE student_modules SET status = 'replaced' WHERE student_id = ? AND module_id = ?";
-        // 2. Fetch module_code and module_name for the new module
+        // Mark old module as replaced and clear signature
+        String markOldSql = "UPDATE student_modules SET status = 'replaced', signature_path = NULL, received_book = 0 WHERE student_id = ? AND module_id = ?";
         String fetchModuleSql = "SELECT module_code, name FROM modules WHERE module_id = ?";
-        // 3. Add new module with reregistration tag, including code and name
-        String addNewSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, registration_type, received_book, formative, summative, supplementary) VALUES (?, ?, ?, ?, 'reregistration', 0, NULL, NULL, NULL)";
-        // 4. Insert automated note
+        String addNewSql = "INSERT INTO student_modules (student_id, module_id, module_code, module_name, formative, summative, supplementary, received_book) VALUES (?, ?, ?, ?, 0, 0, 0, 0)";
         String addNoteSql = "INSERT INTO notes (student_id, note_text, date_added) VALUES (?, ?, date('now'))";
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -633,12 +633,12 @@ private void handleStudentReport() {
                 PreparedStatement addStmt = conn.prepareStatement(addNewSql);
                 PreparedStatement noteStmt = conn.prepareStatement(addNoteSql)
             ) {
-                // Mark old module as replaced
+                // 1. Mark old module as replaced and clear signature
                 markStmt.setInt(1, selectedStudent.getId());
                 markStmt.setInt(2, oldModule.getModuleId());
                 markStmt.executeUpdate();
 
-                // Fetch module_code and name
+                // 2. Fetch module_code and name for the new module
                 fetchStmt.setInt(1, newModuleId);
                 String moduleCode = null;
                 String moduleName = null;
@@ -654,15 +654,16 @@ private void handleStudentReport() {
                     return;
                 }
 
-                // Add new module as reregistration
+                // 3. Add new module as reregistration
                 addStmt.setInt(1, selectedStudent.getId());
                 addStmt.setInt(2, newModuleId);
                 addStmt.setString(3, moduleCode);
                 addStmt.setString(4, moduleName);
                 addStmt.executeUpdate();
 
-                // Add automated note
-                String noteText = "Module reregistered: replaced '" + oldModule.getModuleCode() + " - " + oldModule.getModuleName() + "' with '" + moduleCode + " - " + moduleName + "'.";
+                // 4. Add automated note
+                String noteText = "Module reregistered: replaced '" + oldModule.getModuleCode() + " - "
+                        + oldModule.getModuleName() + "' with '" + moduleCode + " - " + moduleName + "'.";
                 noteStmt.setInt(1, selectedStudent.getId());
                 noteStmt.setString(2, noteText);
                 noteStmt.executeUpdate();
@@ -965,10 +966,12 @@ private void handleStudentReport() {
                     rs.getInt("module_id"),
                     rs.getString("module_code"),
                     rs.getString("module_name"),
-                    rs.getBoolean("received_book"),
                     rs.getObject("formative") != null ? rs.getDouble("formative") : 0.0,
                     rs.getObject("summative") != null ? rs.getDouble("summative") : 0.0,
-                    rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : 0.0
+                    rs.getObject("supplementary") != null ? rs.getDouble("supplementary") : 0.0,
+                    rs.getBoolean("received_book"),
+                    rs.getString("signature_path"),
+                    rs.getString("date_issued")
                 );
                 // Set passRate if setter exists
                 try {
@@ -1177,6 +1180,97 @@ private void handleStudentReport() {
             supplementaryColumn.setCellFactory(EditableDoubleCell.forExamType("supplementary", this));
             supplementaryColumn.setEditable(true);
         }
+        // Signature column setup
+        if (signatureColumn != null) {
+            signatureColumn.setCellValueFactory(
+                cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getSignaturePath()));
+            signatureColumn.setCellFactory(col -> new TableCell<StudentModule, String>() {
+                private final javafx.scene.image.ImageView imageView = new javafx.scene.image.ImageView();
+                {
+                    setOnDragOver(event -> {
+                        if (event.getGestureSource() != this &&
+                            event.getDragboard().hasFiles() &&
+                            !event.getDragboard().getFiles().isEmpty() &&
+                            isImageFile(event.getDragboard().getFiles().get(0))) {
+                            event.acceptTransferModes(javafx.scene.input.TransferMode.COPY);
+                        }
+                        event.consume();
+                    });
+                    setOnDragDropped(event -> {
+                        javafx.scene.input.Dragboard db = event.getDragboard();
+                        boolean success = false;
+                        if (db.hasFiles() && !db.getFiles().isEmpty() && isImageFile(db.getFiles().get(0))) {
+                            java.io.File sourceFile = db.getFiles().get(0);
+                            String originalName = sourceFile.getName();
+                            if (isSignatureFilenameUsed(originalName)) {
+                                showError("Duplicate Image", "This image has already been used for another module. Please use a different image.");
+                            } else if (!sourceFile.exists() || !sourceFile.canRead()) {
+                                showError("Unsupported Source", "Cannot import directly from phone. Please copy the image to your PC first, then drag it here.");
+                            } else {
+                                try {
+                                    java.io.File destDir = getSignaturesDir();
+                                    java.io.File destFile = new java.io.File(destDir, System.currentTimeMillis() + "_" + originalName);
+                                    java.nio.file.Files.copy(sourceFile.toPath(), destFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                    StudentModule module = (StudentModule) getTableRow().getItem();
+                                    if (module != null) {
+                                        String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
+                                        module.setSignaturePath(destFile.getAbsolutePath());
+                                        module.setReceivedBook(true);
+                                        module.setDateIssued(today);
+                                        updateSignatureInDB(module, destFile.getAbsolutePath(), today);
+                                        getTableView().refresh();
+                                    }
+                                    success = true;
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                    showError("Drag-and-Drop Error", "Could not copy image: " + ex.getMessage());
+                                }
+                            }
+                        } else {
+                            showError("Invalid File", "Please drag a PNG or JPG image from your PC.");
+                        }
+                        event.setDropCompleted(success);
+                        event.consume();
+                    });
+                }
+                @Override
+                protected void updateItem(String path, boolean empty) {
+                    super.updateItem(path, empty);
+                    if (empty || path == null || path.isEmpty()) {
+                        setGraphic(null);
+                    } else {
+                        java.io.File file = new java.io.File(path);
+                        if (file.exists()) {
+                            imageView.setImage(new javafx.scene.image.Image(file.toURI().toString(), 100, 50, true, true));
+                            setGraphic(imageView);
+                        } else {
+                            setGraphic(null);
+                        }
+                    }
+                }
+                private boolean isImageFile(java.io.File file) {
+                    String name = file.getName().toLowerCase();
+                    return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg");
+                }
+            });
+        }
+        // Date Issued column setup
+        if (dateIssuedColumn != null) {
+            dateIssuedColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDateIssued()));
+            dateIssuedColumn.setCellFactory(col -> new TableCell<StudentModule, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText(item);
+                        setGraphic(null);
+                    }
+                }
+            });
+        }
     }
 
     private Runnable refreshCallback;
@@ -1292,5 +1386,42 @@ private void handleStudentReport() {
             logger.error("Error syncing student modules with SLP", e);
             showError("Sync Error", "Could not sync modules with SLP: " + e.getMessage());
         }
+    }
+
+    private java.io.File getSignaturesDir() {
+        java.io.File dir = new java.io.File(System.getProperty("user.home"), "studenttracker_signatures");
+        if (!dir.exists()) dir.mkdirs();
+        return dir;
+    }
+
+    private void updateSignatureInDB(StudentModule module, String path, String dateIssued) {
+        try (Connection conn = DBUtil.getConnection();
+         PreparedStatement ps = conn.prepareStatement(
+            "UPDATE student_modules SET signature_path = ?, received_book = ?, date_issued = ? WHERE student_id = ? AND module_id = ?")) {
+        ps.setString(1, path);
+        ps.setBoolean(2, module.isReceivedBook());
+        ps.setString(3, dateIssued);
+        ps.setInt(4, module.getStudentId());
+        ps.setInt(5, module.getModuleId());
+        ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
+        showError("DB Error", "Failed to save signature: " + e.getMessage());
+    }
+    }
+
+    private boolean isSignatureFilenameUsed(String filename) {
+        for (StudentModule sm : studentModules) {
+            String sigPath = sm.getSignaturePath();
+            if (sigPath != null && !sigPath.isEmpty()) {
+                java.io.File f = new java.io.File(sigPath);
+                String[] parts = f.getName().split("_", 2);
+                String nameToCheck = parts.length == 2 ? parts[1] : f.getName();
+                if (nameToCheck.equals(filename)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
