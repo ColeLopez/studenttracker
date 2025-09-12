@@ -1203,9 +1203,19 @@ private void handleStudentReport() {
                             java.io.File sourceFile = db.getFiles().get(0);
                             String originalName = sourceFile.getName();
                             if (isSignatureFilenameUsed(originalName)) {
-                                showError("Duplicate Image", "This image has already been used for another module. Please use a different image.");
+                                event.setDropCompleted(false);
+                                event.consume();
+                                javafx.application.Platform.runLater(() ->
+                                    showError("Duplicate Image", "This image has already been used for another module. Please use a different image.")
+                                );
+                                return;
                             } else if (!sourceFile.exists() || !sourceFile.canRead()) {
-                                showError("Unsupported Source", "Cannot import directly from phone. Please copy the image to your PC first, then drag it here.");
+                                event.setDropCompleted(false);
+                                event.consume();
+                                javafx.application.Platform.runLater(() ->
+                                    showError("Unsupported Source", "Cannot import directly from phone. Please copy the image to your PC first, then drag it here.")
+                                );
+                                return;
                             } else {
                                 try {
                                     java.io.File destDir = getSignaturesDir();
@@ -1222,12 +1232,21 @@ private void handleStudentReport() {
                                     }
                                     success = true;
                                 } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                    showError("Drag-and-Drop Error", "Could not copy image: " + ex.getMessage());
+                                    event.setDropCompleted(false);
+                                    event.consume();
+                                    javafx.application.Platform.runLater(() ->
+                                        showError("Drag-and-Drop Error", "Could not copy image: " + ex.getMessage())
+                                    );
+                                    return;
                                 }
                             }
                         } else {
-                            showError("Invalid File", "Please drag a PNG or JPG image from your PC.");
+                            event.setDropCompleted(false);
+                            event.consume();
+                            javafx.application.Platform.runLater(() ->
+                                showError("Invalid File", "Please drag a PNG or JPG image from your PC.")
+                            );
+                            return;
                         }
                         event.setDropCompleted(success);
                         event.consume();
